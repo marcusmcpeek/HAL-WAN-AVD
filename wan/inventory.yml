@@ -1,0 +1,32 @@
+---
+all:
+  children:
+    WAN:
+      vars:
+        ansible_connection: ansible.netcommon.httpapi
+        ansible_network_os: arista.eos.eos
+        ansible_user: cvpadmin
+        ansible_password: cvp123!
+        ansible_become: true
+        ansible_become_method: enable
+        ansible_httpapi_use_ssl: true
+        ansible_httpapi_validate_certs: false
+      children:
+        PATHFINDER_NODES:
+          hosts:
+            arista-pf1-ch-test:
+              ansible_host: 142.215.104.113
+            arista-pf2-ch-test:
+              ansible_host: 142.215.104.115
+        TRANSIT_NODES:
+          hosts:
+            arista-r1-ch-test:
+              ansible_host: 142.215.198.172
+            arista-r2-ch-test:
+              ansible_host: 142.215.58.13
+        EDGE_NODES:
+          hosts:
+            Site-DRF-INET-SDWAN:
+              ansible_host: 76.81.100.242
+            Site-Tier1-130-INET-SDWAN:
+              ansible_host: 65.76.116.106
