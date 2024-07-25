@@ -1,4 +1,4 @@
-# arista-pf2-ch-test
+# Site-Tier1-130-INET-SDWAN
 
 ## Table of Contents
 
@@ -27,6 +27,7 @@
   - [IKE policies](#ike-policies)
   - [Security Association policies](#security-association-policies)
   - [IPSec profiles](#ipsec-profiles)
+  - [Key controller](#key-controller)
   - [IP Security Device Configuration](#ip-security-device-configuration)
 - [Interfaces](#interfaces)
   - [Switchport Default](#switchport-default)
@@ -51,9 +52,6 @@
 - [VRF Instances](#vrf-instances)
   - [VRF Instances Summary](#vrf-instances-summary)
   - [VRF Instances Device Configuration](#vrf-instances-device-configuration)
-- [Platform](#platform)
-  - [Platform Summary](#platform-summary)
-  - [Platform Device Configuration](#platform-device-configuration)
 - [System L1](#system-l1)
   - [Unsupported Interface Configurations](#unsupported-interface-configurations)
   - [System L1 Device Configuration](#system-l1-device-configuration)
@@ -64,7 +62,7 @@
   - [Router Application-Traffic-Recognition Device Configuration](#router-application-traffic-recognition-device-configuration)
   - [Router Path-selection](#router-path-selection)
 - [STUN](#stun)
-  - [STUN Server](#stun-server)
+  - [STUN Client](#stun-client)
   - [STUN Device Configuration](#stun-device-configuration)
 
 ## Management
@@ -94,7 +92,7 @@ agent KernelFib environment KERNELFIB_PROGRAM_ALL_ECMP='true'
 
 | Management Interface | Description | Type | VRF | IP Address | Gateway |
 | -------------------- | ----------- | ---- | --- | ---------- | ------- |
-| Management1 | oob_management | oob | MGMT | 10.90.245.35/24 | 10.90.245.1 |
+| Management1 | oob_management | oob | MGMT | 10.90.245.42/24 | 10.90.245.1 |
 
 ##### IPv6
 
@@ -110,7 +108,7 @@ interface Management1
    description oob_management
    no shutdown
    vrf MGMT
-   ip address 10.90.245.35/24
+   ip address 10.90.245.42/24
 ```
 
 ### IP Name Servers
@@ -336,19 +334,27 @@ spanning-tree mode none
 
 | Policy name | IKE lifetime | Encryption | DH group | Local ID |
 | ----------- | ------------ | ---------- | -------- | -------- |
-| CP-IKE-POLICY | - | - | - | 192.168.99.2 |
+| CP-IKE-POLICY | - | - | - | 192.168.130.1 |
 
 ### Security Association policies
 
 | Policy name | ESP Integrity | ESP Encryption | Lifetime | PFS DH Group |
 | ----------- | ------------- | -------------- | -------- | ------------ |
+| DP-SA-POLICY | - | aes256gcm128 | - | 14 |
 | CP-SA-POLICY | - | aes256gcm128 | - | 14 |
 
 ### IPSec profiles
 
 | Profile name | IKE policy | SA policy | Connection | DPD Interval | DPD Time | DPD action | Mode | Flow Parallelization |
 | ------------ | ---------- | ----------| ---------- | ------------ | -------- | ---------- | ---- | -------------------- |
+| DP-PROFILE | - | DP-SA-POLICY | start | - | - | - | transport | - |
 | CP-PROFILE | CP-IKE-POLICY | CP-SA-POLICY | start | - | - | - | transport | - |
+
+### Key controller
+
+| Profile name |
+| ------------ |
+| DP-PROFILE |
 
 ### IP Security Device Configuration
 
@@ -357,11 +363,22 @@ spanning-tree mode none
 ip security
    !
    ike policy CP-IKE-POLICY
-      local-id 192.168.99.2
+      local-id 192.168.130.1
+   !
+   sa policy DP-SA-POLICY
+      esp encryption aes256gcm128
+      pfs dh-group 14
    !
    sa policy CP-SA-POLICY
       esp encryption aes256gcm128
       pfs dh-group 14
+   !
+   profile DP-PROFILE
+      sa-policy DP-SA-POLICY
+      connection start
+      shared-key 7 <removed>
+      dpd 10 50 clear
+      mode transport
    !
    profile CP-PROFILE
       ike-policy CP-IKE-POLICY
@@ -370,6 +387,9 @@ ip security
       shared-key 7 <removed>
       dpd 10 50 clear
       mode transport
+   !
+   key controller
+      profile DP-PROFILE
 ```
 
 ## Interfaces
@@ -393,7 +413,7 @@ switchport default mode routed
 
 | Interface | IP address | Shutdown | MTU | Flow tracker(s) | TCP MSS Ceiling |
 | --------- | ---------- | -------- | --- | --------------- | --------------- |
-| Dps1 | 192.168.99.2/32 | - | 9214 | Hardware: FLOW-TRACKER |  |
+| Dps1 | 192.168.130.1/32 | - | 9214 | Hardware: FLOW-TRACKER |  |
 
 #### DPS Interfaces Device Configuration
 
@@ -403,7 +423,7 @@ interface Dps1
    description DPS Interface
    mtu 9214
    flow tracker hardware FLOW-TRACKER
-   ip address 192.168.99.2/32
+   ip address 192.168.130.1/32
 ```
 
 ### Ethernet Interfaces
@@ -421,17 +441,17 @@ interface Dps1
 
 | Interface | Description | Type | Channel Group | IP Address | VRF |  MTU | Shutdown | ACL In | ACL Out |
 | --------- | ----------- | -----| ------------- | ---------- | ----| ---- | -------- | ------ | ------- |
-| Ethernet1 | internet | routed | - | 142.215.104.115/31 | default | - | False | - | - |
+| Ethernet1/1 | internet | routed | - | 65.76.116.106/30 | default | - | False | - | - |
 
 #### Ethernet Interfaces Device Configuration
 
 ```eos
 !
-interface Ethernet1
+interface Ethernet1/1
    description internet
    no shutdown
    no switchport
-   ip address 142.215.104.115/31
+   ip address 65.76.116.106/30
 ```
 
 ### Loopback Interfaces
@@ -442,7 +462,7 @@ interface Ethernet1
 
 | Interface | Description | VRF | IP Address |
 | --------- | ----------- | --- | ---------- |
-| Loopback0 | Router_ID | default | 10.254.99.2/32 |
+| Loopback0 | Router_ID | default | 10.254.130.1/32 |
 
 ##### IPv6
 
@@ -457,7 +477,7 @@ interface Ethernet1
 interface Loopback0
    description Router_ID
    no shutdown
-   ip address 10.254.99.2/32
+   ip address 10.254.130.1/32
 ```
 
 ### VXLAN Interface
@@ -481,7 +501,7 @@ interface Loopback0
 ```eos
 !
 interface Vxlan1
-   description arista-pf2-ch-test_VTEP
+   description Site-Tier1-130-INET-SDWAN_VTEP
    vxlan source-interface Dps1
    vxlan udp-port 4789
    vxlan vrf default vni 101
@@ -547,7 +567,13 @@ ip route vrf MGMT 0.0.0.0/0 10.90.245.1
 
 #### Router Adaptive Virtual Topology Summary
 
-Topology role: pathfinder
+Topology role: edge
+
+| Hierarchy | Name | ID |
+| --------- | ---- | -- |
+| Region | Global | 1 |
+| Zone | Global-ZONE | 1 |
+| Site | Site-Tier1 | 130 |
 
 #### AVT Profiles
 
@@ -600,7 +626,10 @@ Topology role: pathfinder
 ```eos
 !
 router adaptive-virtual-topology
-   topology role pathfinder
+   topology role edge
+   region Global id 1
+   zone Global-ZONE id 1
+   site Site-Tier1 id 130
    !
    policy DEFAULT-AVT-POLICY-WITH-CP
       !
@@ -653,27 +682,12 @@ ASN Notation: asplain
 
 | BGP AS | Router ID |
 | ------ | --------- |
-| 65199 | 10.254.99.2 |
-
-| BGP AS | Cluster ID |
-| ------ | --------- |
-| 65199 | 10.254.99.2 |
+| 65199 | 10.254.130.1 |
 
 | BGP Tuning |
 | ---------- |
 | no bgp default ipv4-unicast |
 | maximum-paths 16 |
-
-#### Router BGP Listen Ranges
-
-| Prefix | Peer-ID Include Router ID | Peer Group | Peer-Filter | Remote-AS | VRF |
-| ------ | ------------------------- | ---------- | ----------- | --------- | --- |
-| 192.168.100.0/31 | - | WAN-OVERLAY-PEERS | - | 65199 | default |
-| 192.168.108.0/31 | - | WAN-OVERLAY-PEERS | - | 65199 | default |
-| 192.168.109.0/31 | - | WAN-OVERLAY-PEERS | - | 65199 | default |
-| 192.168.110.0/31 | - | WAN-OVERLAY-PEERS | - | 65199 | default |
-| 192.168.120.0/31 | - | WAN-OVERLAY-PEERS | - | 65199 | default |
-| 192.168.130.0/31 | - | WAN-OVERLAY-PEERS | - | 65199 | default |
 
 #### Router BGP Peer Groups
 
@@ -683,21 +697,6 @@ ASN Notation: asplain
 | -------- | ----- |
 | Address Family | wan |
 | Remote AS | 65199 |
-| Route Reflector Client | Yes |
-| Source | Dps1 |
-| BFD | True |
-| BFD Timers | interval: 1000, min_rx: 1000, multiplier: 10 |
-| TTL Max Hops | 1 |
-| Send community | all |
-| Maximum routes | 0 (no limit) |
-
-##### WAN-RR-OVERLAY-PEERS
-
-| Settings | Value |
-| -------- | ----- |
-| Address Family | wan |
-| Remote AS | 65199 |
-| Route Reflector Client | Yes |
 | Source | Dps1 |
 | BFD | True |
 | BFD Timers | interval: 1000, min_rx: 1000, multiplier: 10 |
@@ -709,18 +708,16 @@ ASN Notation: asplain
 
 | Neighbor | Remote AS | VRF | Shutdown | Send-community | Maximum-routes | Allowas-in | BFD | RIB Pre-Policy Retain | Route-Reflector Client | Passive | TTL Max Hops |
 | -------- | --------- | --- | -------- | -------------- | -------------- | ---------- | --- | --------------------- | ---------------------- | ------- | ------------ |
-| 192.168.99.1 | Inherited from peer group WAN-RR-OVERLAY-PEERS | default | - | Inherited from peer group WAN-RR-OVERLAY-PEERS | Inherited from peer group WAN-RR-OVERLAY-PEERS | - | Inherited from peer group WAN-RR-OVERLAY-PEERS(interval: 1000, min_rx: 1000, multiplier: 10) | - | Inherited from peer group WAN-RR-OVERLAY-PEERS | - | Inherited from peer group WAN-RR-OVERLAY-PEERS |
+| 192.168.99.1 | Inherited from peer group WAN-OVERLAY-PEERS | default | - | Inherited from peer group WAN-OVERLAY-PEERS | Inherited from peer group WAN-OVERLAY-PEERS | - | Inherited from peer group WAN-OVERLAY-PEERS(interval: 1000, min_rx: 1000, multiplier: 10) | - | - | - | Inherited from peer group WAN-OVERLAY-PEERS |
+| 192.168.99.2 | Inherited from peer group WAN-OVERLAY-PEERS | default | - | Inherited from peer group WAN-OVERLAY-PEERS | Inherited from peer group WAN-OVERLAY-PEERS | - | Inherited from peer group WAN-OVERLAY-PEERS(interval: 1000, min_rx: 1000, multiplier: 10) | - | - | - | Inherited from peer group WAN-OVERLAY-PEERS |
 
 #### Router BGP EVPN Address Family
-
-- Next-hop resolution is **disabled**
 
 ##### EVPN Peer Groups
 
 | Peer Group | Activate | Encapsulation |
 | ---------- | -------- | ------------- |
 | WAN-OVERLAY-PEERS | True | default |
-| WAN-RR-OVERLAY-PEERS | True | default |
 
 #### Router BGP IPv4 SR-TE Address Family
 
@@ -729,7 +726,6 @@ ASN Notation: asplain
 | Peer Group | Activate | Route-map In | Route-map Out |
 | ---------- | -------- | ------------ | ------------- |
 | WAN-OVERLAY-PEERS | True | - | - |
-| WAN-RR-OVERLAY-PEERS | True | - | - |
 
 #### Router BGP Link-State Address Family
 
@@ -737,14 +733,13 @@ ASN Notation: asplain
 
 | Peer Group | Activate | Missing policy In action | Missing policy Out action |
 | ---------- | -------- | ------------------------ | ------------------------- |
-| WAN-OVERLAY-PEERS | True | - | deny |
-| WAN-RR-OVERLAY-PEERS | True | - | - |
+| WAN-OVERLAY-PEERS | True | - | - |
 
 ##### Link-State Path Selection Configuration
 
 | Settings | Value |
 | -------- | ----- |
-| Role(s) | consumer<br>propagator |
+| Role(s) | producer |
 
 #### Router BGP Path-Selection Address Family
 
@@ -753,88 +748,67 @@ ASN Notation: asplain
 | Peer Group | Activate |
 | ---------- | -------- |
 | WAN-OVERLAY-PEERS | True |
-| WAN-RR-OVERLAY-PEERS | True |
 
 #### Router BGP VRFs
 
 | VRF | Route-Distinguisher | Redistribute |
 | --- | ------------------- | ------------ |
-| default | 10.254.99.2:101 | - |
-| STATION | 10.254.99.2:102 | connected |
+| default | 10.254.130.1:101 | - |
+| STATION | 10.254.130.1:102 | connected |
 
 #### Router BGP Device Configuration
 
 ```eos
 !
 router bgp 65199
-   router-id 10.254.99.2
+   router-id 10.254.130.1
    maximum-paths 16
    no bgp default ipv4-unicast
-   bgp cluster-id 10.254.99.2
-   bgp listen range 192.168.100.0/31 peer-group WAN-OVERLAY-PEERS remote-as 65199
-   bgp listen range 192.168.108.0/31 peer-group WAN-OVERLAY-PEERS remote-as 65199
-   bgp listen range 192.168.109.0/31 peer-group WAN-OVERLAY-PEERS remote-as 65199
-   bgp listen range 192.168.110.0/31 peer-group WAN-OVERLAY-PEERS remote-as 65199
-   bgp listen range 192.168.120.0/31 peer-group WAN-OVERLAY-PEERS remote-as 65199
-   bgp listen range 192.168.130.0/31 peer-group WAN-OVERLAY-PEERS remote-as 65199
    neighbor WAN-OVERLAY-PEERS peer group
    neighbor WAN-OVERLAY-PEERS remote-as 65199
    neighbor WAN-OVERLAY-PEERS update-source Dps1
-   neighbor WAN-OVERLAY-PEERS route-reflector-client
    neighbor WAN-OVERLAY-PEERS bfd
    neighbor WAN-OVERLAY-PEERS bfd interval 1000 min-rx 1000 multiplier 10
    neighbor WAN-OVERLAY-PEERS ttl maximum-hops 1
    neighbor WAN-OVERLAY-PEERS send-community
    neighbor WAN-OVERLAY-PEERS maximum-routes 0
-   neighbor WAN-RR-OVERLAY-PEERS peer group
-   neighbor WAN-RR-OVERLAY-PEERS remote-as 65199
-   neighbor WAN-RR-OVERLAY-PEERS update-source Dps1
-   neighbor WAN-RR-OVERLAY-PEERS route-reflector-client
-   neighbor WAN-RR-OVERLAY-PEERS bfd
-   neighbor WAN-RR-OVERLAY-PEERS bfd interval 1000 min-rx 1000 multiplier 10
-   neighbor WAN-RR-OVERLAY-PEERS ttl maximum-hops 1
-   neighbor WAN-RR-OVERLAY-PEERS send-community
-   neighbor WAN-RR-OVERLAY-PEERS maximum-routes 0
-   neighbor 192.168.99.1 peer group WAN-RR-OVERLAY-PEERS
+   neighbor 192.168.99.1 peer group WAN-OVERLAY-PEERS
    neighbor 192.168.99.1 description arista-pf1-ch-test
+   neighbor 192.168.99.2 peer group WAN-OVERLAY-PEERS
+   neighbor 192.168.99.2 description arista-pf2-ch-test
    redistribute connected route-map RM-CONN-2-BGP
    !
    address-family evpn
+      neighbor WAN-OVERLAY-PEERS route-map RM-EVPN-SOO-IN in
+      neighbor WAN-OVERLAY-PEERS route-map RM-EVPN-SOO-OUT out
       neighbor WAN-OVERLAY-PEERS activate
-      neighbor WAN-RR-OVERLAY-PEERS activate
-      next-hop resolution disabled
    !
    address-family ipv4
       no neighbor WAN-OVERLAY-PEERS activate
-      no neighbor WAN-RR-OVERLAY-PEERS activate
    !
    address-family ipv4 sr-te
       neighbor WAN-OVERLAY-PEERS activate
-      neighbor WAN-RR-OVERLAY-PEERS activate
    !
    address-family link-state
       neighbor WAN-OVERLAY-PEERS activate
-      neighbor WAN-OVERLAY-PEERS missing-policy direction out action deny
-      neighbor WAN-RR-OVERLAY-PEERS activate
-      path-selection role consumer propagator
+      path-selection
    !
    address-family path-selection
       bgp additional-paths receive
       bgp additional-paths send any
       neighbor WAN-OVERLAY-PEERS activate
-      neighbor WAN-RR-OVERLAY-PEERS activate
    !
    vrf default
-      rd 10.254.99.2:101
+      rd 10.254.130.1:101
       route-target import evpn 65199:101
       route-target export evpn 65199:101
       route-target export evpn route-map RM-EVPN-EXPORT-VRF-DEFAULT
    !
    vrf STATION
-      rd 10.254.99.2:102
+      rd 10.254.130.1:102
       route-target import evpn 65199:102
       route-target export evpn 65199:102
-      router-id 10.254.99.2
+      router-id 10.254.130.1
       redistribute connected
 ```
 
@@ -866,14 +840,14 @@ router bfd
 
 | Sequence | Action |
 | -------- | ------ |
-| 10 | permit 10.254.99.0/30 eq 32 |
+| 10 | permit 10.254.130.1/32 eq 32 |
 
 #### Prefix-lists Device Configuration
 
 ```eos
 !
 ip prefix-list PL-LOOPBACKS-EVPN-OVERLAY
-   seq 10 permit 10.254.99.0/30 eq 32
+   seq 10 permit 10.254.130.1/32 eq 32
 ```
 
 ### Route-maps
@@ -884,7 +858,7 @@ ip prefix-list PL-LOOPBACKS-EVPN-OVERLAY
 
 | Sequence | Type | Match | Set | Sub-Route-Map | Continue |
 | -------- | ---- | ----- | --- | ------------- | -------- |
-| 10 | permit | ip address prefix-list PL-LOOPBACKS-EVPN-OVERLAY | extcommunity soo 10.254.99.2:0 additive | - | - |
+| 10 | permit | ip address prefix-list PL-LOOPBACKS-EVPN-OVERLAY | extcommunity soo 10.254.130.1:130 additive | - | - |
 
 ##### RM-EVPN-EXPORT-VRF-DEFAULT
 
@@ -892,16 +866,37 @@ ip prefix-list PL-LOOPBACKS-EVPN-OVERLAY
 | -------- | ---- | ----- | --- | ------------- | -------- |
 | 10 | permit | extcommunity ECL-EVPN-SOO | - | - | - |
 
+##### RM-EVPN-SOO-IN
+
+| Sequence | Type | Match | Set | Sub-Route-Map | Continue |
+| -------- | ---- | ----- | --- | ------------- | -------- |
+| 10 | deny | extcommunity ECL-EVPN-SOO | - | - | - |
+| 20 | permit | - | - | - | - |
+
+##### RM-EVPN-SOO-OUT
+
+| Sequence | Type | Match | Set | Sub-Route-Map | Continue |
+| -------- | ---- | ----- | --- | ------------- | -------- |
+| 10 | permit | - | extcommunity soo 10.254.130.1:130 additive | - | - |
+
 #### Route-maps Device Configuration
 
 ```eos
 !
 route-map RM-CONN-2-BGP permit 10
    match ip address prefix-list PL-LOOPBACKS-EVPN-OVERLAY
-   set extcommunity soo 10.254.99.2:0 additive
+   set extcommunity soo 10.254.130.1:130 additive
 !
 route-map RM-EVPN-EXPORT-VRF-DEFAULT permit 10
    match extcommunity ECL-EVPN-SOO
+!
+route-map RM-EVPN-SOO-IN deny 10
+   match extcommunity ECL-EVPN-SOO
+!
+route-map RM-EVPN-SOO-IN permit 20
+!
+route-map RM-EVPN-SOO-OUT permit 10
+   set extcommunity soo 10.254.130.1:130 additive
 ```
 
 ### IP Extended Community Lists
@@ -910,13 +905,13 @@ route-map RM-EVPN-EXPORT-VRF-DEFAULT permit 10
 
 | List Name | Type | Extended Communities |
 | --------- | ---- | -------------------- |
-| ECL-EVPN-SOO | permit | soo 10.254.99.2:0 |
+| ECL-EVPN-SOO | permit | soo 10.254.130.1:130 |
 
 #### IP Extended Community Lists Device Configuration
 
 ```eos
 !
-ip extcommunity-list ECL-EVPN-SOO permit soo 10.254.99.2:0
+ip extcommunity-list ECL-EVPN-SOO permit soo 10.254.130.1:130
 ```
 
 ## VRF Instances
@@ -935,23 +930,6 @@ ip extcommunity-list ECL-EVPN-SOO permit soo 10.254.99.2:0
 vrf instance MGMT
 !
 vrf instance STATION
-```
-
-## Platform
-
-### Platform Summary
-
-#### Platform Software Forwarding Engine Summary
-
-| Settings | Value |
-| -------- | ----- |
-| Maximum CPU Allocation | 4 |
-
-### Platform Device Configuration
-
-```eos
-!
-platform sfe data-plane cpu allocation maximum 4
 ```
 
 ## System L1
@@ -980,7 +958,7 @@ system l1
 
 | Name | Source Prefix | Destination Prefix | Protocols | Protocol Ranges | TCP Source Port Set | TCP Destination Port Set | UDP Source Port Set | UDP Destination Port Set |
 | ---- | ------------- | ------------------ | --------- | --------------- | ------------------- | ------------------------ | ------------------- | ------------------------ |
-| APP-CONTROL-PLANE | PFX-LOCAL-VTEP-IP | - | - | - | - | - | - | - |
+| APP-CONTROL-PLANE | - | PFX-PATHFINDERS | - | - | - | - | - | - |
 
 ### Application Profiles
 
@@ -996,7 +974,7 @@ system l1
 
 | Name | Prefixes |
 | ---- | -------- |
-| PFX-LOCAL-VTEP-IP | 192.168.99.2/32 |
+| PFX-PATHFINDERS | 192.168.99.1/32<br>192.168.99.2/32 |
 
 ### Router Application-Traffic-Recognition Device Configuration
 
@@ -1005,22 +983,16 @@ system l1
 application traffic recognition
    !
    application ipv4 APP-CONTROL-PLANE
-      source prefix field-set PFX-LOCAL-VTEP-IP
+      destination prefix field-set PFX-PATHFINDERS
    !
    application-profile APP-PROFILE-CONTROL-PLANE
       application APP-CONTROL-PLANE
    !
-   field-set ipv4 prefix PFX-LOCAL-VTEP-IP
-      192.168.99.2/32
+   field-set ipv4 prefix PFX-PATHFINDERS
+      192.168.99.1/32 192.168.99.2/32
 ```
 
 ### Router Path-selection
-
-#### Router Path-selection Summary
-
-| Setting | Value |
-| ------  | ----- |
-| Dynamic peers source | STUN |
 
 #### TCP MSS Ceiling Configuration
 
@@ -1041,76 +1013,84 @@ application traffic recognition
 
 | Interface name | Public address | STUN server profile(s) |
 | -------------- | -------------- | ---------------------- |
-| Ethernet1 | - |  |
+| Ethernet1/1 | - | internet-arista-pf1-ch-test-Ethernet1<br>internet-arista-pf2-ch-test-Ethernet1 |
+
+###### Dynamic Peers Settings
+
+| Setting | Value |
+| ------  | ----- |
+| IP Local | - |
+| IPSec | - |
 
 ###### Static Peers
 
 | Router IP | Name | IPv4 address(es) |
 | --------- | ---- | ---------------- |
 | 192.168.99.1 | arista-pf1-ch-test | 142.215.104.113 |
-
-##### Path Group LAN_HA
-
-| Setting | Value |
-| ------  | ----- |
-| Path Group ID | 65535 |
-| Flow assignment | LAN |
+| 192.168.99.2 | arista-pf2-ch-test | 142.215.104.115 |
 
 #### Load-balance Policies
 
 | Policy Name | Jitter (ms) | Latency (ms) | Loss Rate (%) | Path Groups (priority) | Lowest Hop Count |
 | ----------- | ----------- | ------------ | ------------- | ---------------------- | ---------------- |
-| LB-DEFAULT-AVT-POLICY-CONTROL-PLANE | - | - | - | internet (1)<br>LAN_HA (1) | False |
-| LB-DEFAULT-AVT-POLICY-DEFAULT | - | - | - | internet (1)<br>LAN_HA (1) | False |
-| LB-STATION-DEFAULT-DEFAULT | - | - | - | internet (1)<br>LAN_HA (1) | False |
+| LB-DEFAULT-AVT-POLICY-CONTROL-PLANE | - | - | - | internet (1) | False |
+| LB-DEFAULT-AVT-POLICY-DEFAULT | - | - | - | internet (1) | False |
+| LB-STATION-DEFAULT-DEFAULT | - | - | - | internet (1) | False |
 
 #### Router Path-selection Device Configuration
 
 ```eos
 !
 router path-selection
-   peer dynamic source stun
    tcp mss ceiling ipv4 ingress
    !
    path-group internet id 101
       ipsec profile CP-PROFILE
       !
-      local interface Ethernet1
+      local interface Ethernet1/1
+         stun server-profile internet-arista-pf1-ch-test-Ethernet1 internet-arista-pf2-ch-test-Ethernet1
+      !
+      peer dynamic
       !
       peer static router-ip 192.168.99.1
          name arista-pf1-ch-test
          ipv4 address 142.215.104.113
-   !
-   path-group LAN_HA id 65535
-      flow assignment lan
+      !
+      peer static router-ip 192.168.99.2
+         name arista-pf2-ch-test
+         ipv4 address 142.215.104.115
    !
    load-balance policy LB-DEFAULT-AVT-POLICY-CONTROL-PLANE
       path-group internet
-      path-group LAN_HA
    !
    load-balance policy LB-DEFAULT-AVT-POLICY-DEFAULT
       path-group internet
-      path-group LAN_HA
    !
    load-balance policy LB-STATION-DEFAULT-DEFAULT
       path-group internet
-      path-group LAN_HA
 ```
 
 ## STUN
 
-### STUN Server
+### STUN Client
 
-| Server Local Interfaces | Bindings Timeout (s) | SSL Profile | SSL Connection Lifetime | Port |
-| ----------------------- | -------------------- | ----------- | ----------------------- | ---- |
-| Ethernet1 | - | STUN-DTLS | - | 3478 |
+#### Server Profiles
+
+| Server Profile | IP address | SSL Profile | Port |
+| -------------- | ---------- | ----------- | ---- |
+| internet-arista-pf1-ch-test-Ethernet1 | 142.215.104.113 | STUN-DTLS | 3478 |
+| internet-arista-pf2-ch-test-Ethernet1 | 142.215.104.115 | STUN-DTLS | 3478 |
 
 ### STUN Device Configuration
 
 ```eos
 !
 stun
-   server
-      local-interface Ethernet1
-      ssl profile STUN-DTLS
+   client
+      server-profile internet-arista-pf1-ch-test-Ethernet1
+         ip address 142.215.104.113
+         ssl profile STUN-DTLS
+      server-profile internet-arista-pf2-ch-test-Ethernet1
+         ip address 142.215.104.115
+         ssl profile STUN-DTLS
 ```

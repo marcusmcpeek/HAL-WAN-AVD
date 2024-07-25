@@ -6,21 +6,23 @@
   - [Agents](#agents)
   - [Management Interfaces](#management-interfaces)
   - [IP Name Servers](#ip-name-servers)
-  - [Domain Lookup](#domain-lookup)
   - [NTP](#ntp)
   - [Management SSH](#management-ssh)
   - [Management API HTTP](#management-api-http)
 - [Authentication](#authentication)
   - [Local Users](#local-users)
+  - [AAA Authorization](#aaa-authorization)
+- [Management Security](#management-security)
+  - [Management Security Summary](#management-security-summary)
+  - [Management Security SSL Profiles](#management-security-ssl-profiles)
+  - [SSL profile STUN-DTLS Certificates Summary](#ssl-profile-stun-dtls-certificates-summary)
+  - [Management Security Device Configuration](#management-security-device-configuration)
 - [Monitoring](#monitoring)
   - [TerminAttr Daemon](#terminattr-daemon)
   - [Flow Tracking](#flow-tracking)
 - [Spanning Tree](#spanning-tree)
   - [Spanning Tree Summary](#spanning-tree-summary)
   - [Spanning Tree Device Configuration](#spanning-tree-device-configuration)
-- [Internal VLAN Allocation Policy](#internal-vlan-allocation-policy)
-  - [Internal VLAN Allocation Policy Summary](#internal-vlan-allocation-policy-summary)
-  - [Internal VLAN Allocation Policy Device Configuration](#internal-vlan-allocation-policy-device-configuration)
 - [IP Security](#ip-security)
   - [IKE policies](#ike-policies)
   - [Security Association policies](#security-association-policies)
@@ -45,6 +47,7 @@
 - [Filters](#filters)
   - [Prefix-lists](#prefix-lists)
   - [Route-maps](#route-maps)
+  - [IP Extended Community Lists](#ip-extended-community-lists)
 - [VRF Instances](#vrf-instances)
   - [VRF Instances Summary](#vrf-instances-summary)
   - [VRF Instances Device Configuration](#vrf-instances-device-configuration)
@@ -91,13 +94,13 @@ agent KernelFib environment KERNELFIB_PROGRAM_ALL_ECMP='true'
 
 | Management Interface | Description | Type | VRF | IP Address | Gateway |
 | -------------------- | ----------- | ---- | --- | ---------- | ------- |
-| Management1 | oob_management | oob | default | 10.90.245.41/24 | 10.90.245.1 |
+| Management1 | oob_management | oob | MGMT | 10.90.245.41/24 | 10.90.245.1 |
 
 ##### IPv6
 
 | Management Interface | Description | Type | VRF | IPv6 Address | IPv6 Gateway |
 | -------------------- | ----------- | ---- | --- | ------------ | ------------ |
-| Management1 | oob_management | oob | default | - | - |
+| Management1 | oob_management | oob | MGMT | - | - |
 
 #### Management Interfaces Device Configuration
 
@@ -106,6 +109,7 @@ agent KernelFib environment KERNELFIB_PROGRAM_ALL_ECMP='true'
 interface Management1
    description oob_management
    no shutdown
+   vrf MGMT
    ip address 10.90.245.41/24
 ```
 
@@ -115,60 +119,31 @@ interface Management1
 
 | Name Server | VRF | Priority |
 | ----------- | --- | -------- |
-| 10.14.0.1 | default | - |
-| 172.22.22.40 | default | - |
-| 8.8.4.4 | default | 4 |
-| 8.8.8.8 | default | 4 |
+| 8.8.4.4 | default | - |
+| 8.8.8.8 | default | - |
 
 #### IP Name Servers Device Configuration
 
 ```eos
-ip name-server vrf default 8.8.4.4 priority 4
-ip name-server vrf default 8.8.8.8 priority 4
-ip name-server vrf default 10.14.0.1
-ip name-server vrf default 172.22.22.40
-```
-
-### Domain Lookup
-
-#### DNS Domain Lookup Summary
-
-| Source interface | vrf |
-| ---------------- | --- |
-| Management1 | - |
-
-#### DNS Domain Lookup Device Configuration
-
-```eos
-ip domain lookup source-interface Management1
+ip name-server vrf default 8.8.4.4
+ip name-server vrf default 8.8.8.8
 ```
 
 ### NTP
 
 #### NTP Summary
 
-##### NTP Local Interface
-
-| Interface | VRF |
-| --------- | --- |
-| Management1 | default |
-
 ##### NTP Servers
 
 | Server | VRF | Preferred | Burst | iBurst | Version | Min Poll | Max Poll | Local-interface | Key |
 | ------ | --- | --------- | ----- | ------ | ------- | -------- | -------- | --------------- | --- |
-| 10.41.194.6 | default | True | - | - | - | - | - | - | - |
-| 10.85.14.245 | default | - | - | - | - | - | - | - | - |
-| time.google.com | default | - | - | - | - | - | - | - | - |
+| time.google.com | default | True | - | - | - | - | - | - | - |
 
 #### NTP Device Configuration
 
 ```eos
 !
-ntp local-interface Management1
-ntp server 10.41.194.6 prefer
-ntp server 10.85.14.245
-ntp server time.google.com
+ntp server time.google.com prefer
 ```
 
 ### Management SSH
@@ -212,7 +187,7 @@ management ssh
 
 | VRF Name | IPv4 ACL | IPv6 ACL |
 | -------- | -------- | -------- |
-| default | - | - |
+| MGMT | - | - |
 
 #### Management API HTTP Device Configuration
 
@@ -222,7 +197,7 @@ management api http-commands
    protocol https
    no shutdown
    !
-   vrf default
+   vrf MGMT
       no shutdown
 ```
 
@@ -235,12 +210,61 @@ management api http-commands
 | User | Privilege | Role | Disabled | Shell |
 | ---- | --------- | ---- | -------- | ----- |
 | admin | 15 | network-admin | False | - |
+| neteng1 | 15 | network-admin | False | - |
 
 #### Local Users Device Configuration
 
 ```eos
 !
 username admin privilege 15 role network-admin secret sha512 <removed>
+username neteng1 privilege 15 role network-admin secret sha512 <removed>
+```
+
+### AAA Authorization
+
+#### AAA Authorization Summary
+
+| Type | User Stores |
+| ---- | ----------- |
+| Exec | local |
+
+Authorization for configuration commands is disabled.
+
+#### AAA Authorization Device Configuration
+
+```eos
+aaa authorization exec default local
+!
+```
+
+## Management Security
+
+### Management Security Summary
+
+| Settings | Value |
+| -------- | ----- |
+
+### Management Security SSL Profiles
+
+| SSL Profile Name | TLS protocol accepted | Certificate filename | Key filename | Cipher List | CRLs |
+| ---------------- | --------------------- | -------------------- | ------------ | ----------- | ---- |
+| STUN-DTLS | 1.2 | STUN-DTLS.crt | STUN-DTLS.key | - | - |
+
+### SSL profile STUN-DTLS Certificates Summary
+
+| Trust Certificates | Requirement | Policy | System |
+| ------------------ | ----------- | ------ | ------ |
+| aristaDeviceCertProvisionerDefaultRootCA.crt | - | - | - |
+
+### Management Security Device Configuration
+
+```eos
+!
+management security
+   ssl profile STUN-DTLS
+      tls versions 1.2
+      trust certificate aristaDeviceCertProvisionerDefaultRootCA.crt
+      certificate STUN-DTLS.crt key STUN-DTLS.key
 ```
 
 ## Monitoring
@@ -251,14 +275,14 @@ username admin privilege 15 role network-admin secret sha512 <removed>
 
 | CV Compression | CloudVision Servers | VRF | Authentication | Smash Excludes | Ingest Exclude | Bypass AAA |
 | -------------- | ------------------- | --- | -------------- | -------------- | -------------- | ---------- |
-| gzip | apiserver.cv-staging.corp.arista.io:443 | default | token-secure,/tmp/cv-onboarding-token | ale,flexCounter,hardware,kni,pulse,strata | /Sysdb/cell/1/agent,/Sysdb/cell/2/agent | True |
+| gzip | apiserver.cv-staging.corp.arista.io:443 | MGMT | token-secure,/tmp/cv-onboarding-token | ale,flexCounter,hardware,kni,pulse,strata | /Sysdb/cell/1/agent,/Sysdb/cell/2/agent | True |
 
 #### TerminAttr Daemon Device Configuration
 
 ```eos
 !
 daemon TerminAttr
-   exec /usr/bin/TerminAttr -cvaddr=apiserver.cv-staging.corp.arista.io:443 -cvauth=token-secure,/tmp/cv-onboarding-token -cvvrf=default -disableaaa -smashexcludes=ale,flexCounter,hardware,kni,pulse,strata -ingestexclude=/Sysdb/cell/1/agent,/Sysdb/cell/2/agent -taillogs
+   exec /usr/bin/TerminAttr -cvaddr=apiserver.cv-staging.corp.arista.io:443 -cvauth=token-secure,/tmp/cv-onboarding-token -cvvrf=MGMT -disableaaa -smashexcludes=ale,flexCounter,hardware,kni,pulse,strata -ingestexclude=/Sysdb/cell/1/agent,/Sysdb/cell/2/agent -taillogs
    no shutdown
 ```
 
@@ -270,26 +294,26 @@ daemon TerminAttr
 
 | Tracker Name | Record Export On Inactive Timeout | Record Export On Interval | Number of Exporters | Applied On |
 | ------------ | --------------------------------- | ------------------------- | ------------------- | ---------- |
-| WAN-FLOW-TRACKER | 70000 | 5000 | 1 | Ethernet1 |
+| FLOW-TRACKER | 70000 | 300000 | 1 | Dps1 |
 
 ##### Exporters Summary
 
 | Tracker Name | Exporter Name | Collector IP/Host | Collector Port | Local Interface |
 | ------------ | ------------- | ----------------- | -------------- | --------------- |
-| WAN-FLOW-TRACKER | DPI-EXPORTER | - | - | Loopback0 |
+| FLOW-TRACKER | CV-TELEMETRY | - | - | Loopback0 |
 
 #### Flow Tracking Device Configuration
 
 ```eos
 !
 flow tracking hardware
-   tracker WAN-FLOW-TRACKER
+   tracker FLOW-TRACKER
       record export on inactive timeout 70000
-      record export on interval 5000
-      exporter DPI-EXPORTER
+      record export on interval 300000
+      exporter CV-TELEMETRY
          collector 127.0.0.1
          local interface Loopback0
-         template interval 5000
+         template interval 3600000
    no shutdown
 ```
 
@@ -306,21 +330,6 @@ STP mode: **none**
 spanning-tree mode none
 ```
 
-## Internal VLAN Allocation Policy
-
-### Internal VLAN Allocation Policy Summary
-
-| Policy Allocation | Range Beginning | Range Ending |
-| ------------------| --------------- | ------------ |
-| ascending | 1006 | 1199 |
-
-### Internal VLAN Allocation Policy Device Configuration
-
-```eos
-!
-vlan internal order ascending range 1006 1199
-```
-
 ## IP Security
 
 ### IKE policies
@@ -331,15 +340,15 @@ vlan internal order ascending range 1006 1199
 
 ### Security Association policies
 
-| Policy name | ESP Integrity | ESP Encryption | PFS DH Group |
-| ----------- | ------------- | -------------- | ------------ |
-| CP-SA-POLICY | - | aes128 | 14 |
+| Policy name | ESP Integrity | ESP Encryption | Lifetime | PFS DH Group |
+| ----------- | ------------- | -------------- | -------- | ------------ |
+| CP-SA-POLICY | - | aes256gcm128 | - | 14 |
 
 ### IPSec profiles
 
-| Profile name | IKE policy | SA policy | Connection | DPD Interval | DPD Time | DPD action | Mode |
-| ------------ | ---------- | ----------| ---------- | ------------ | -------- | ---------- | ---- |
-| CP-PROFILE | CP-IKE-POLICY | CP-SA-POLICY | start | - | - | - | transport |
+| Profile name | IKE policy | SA policy | Connection | DPD Interval | DPD Time | DPD action | Mode | Flow Parallelization |
+| ------------ | ---------- | ----------| ---------- | ------------ | -------- | ---------- | ---- | -------------------- |
+| CP-PROFILE | CP-IKE-POLICY | CP-SA-POLICY | start | - | - | - | transport | - |
 
 ### IP Security Device Configuration
 
@@ -351,7 +360,7 @@ ip security
       local-id 192.168.99.1
    !
    sa policy CP-SA-POLICY
-      esp encryption aes128
+      esp encryption aes256gcm128
       pfs dh-group 14
    !
    profile CP-PROFILE
@@ -384,7 +393,7 @@ switchport default mode routed
 
 | Interface | IP address | Shutdown | MTU | Flow tracker(s) | TCP MSS Ceiling |
 | --------- | ---------- | -------- | --- | --------------- | --------------- |
-| Dps1 | 192.168.99.1/32 | - | - | Hardware: WAN-FLOW-TRACKER |  |
+| Dps1 | 192.168.99.1/32 | - | 9214 | Hardware: FLOW-TRACKER |  |
 
 #### DPS Interfaces Device Configuration
 
@@ -392,7 +401,8 @@ switchport default mode routed
 !
 interface Dps1
    description DPS Interface
-   flow tracker hardware WAN-FLOW-TRACKER
+   mtu 9214
+   flow tracker hardware FLOW-TRACKER
    ip address 192.168.99.1/32
 ```
 
@@ -411,17 +421,17 @@ interface Dps1
 
 | Interface | Description | Type | Channel Group | IP Address | VRF |  MTU | Shutdown | ACL In | ACL Out |
 | --------- | ----------- | -----| ------------- | ---------- | ----| ---- | -------- | ------ | ------- |
-| Ethernet1 | - | routed | - | 10.90.244.39/24 | default | - | False | - | - |
+| Ethernet1 | internet | routed | - | 142.215.104.113/31 | default | - | False | - | - |
 
 #### Ethernet Interfaces Device Configuration
 
 ```eos
 !
 interface Ethernet1
+   description internet
    no shutdown
    no switchport
-   flow tracker hardware WAN-FLOW-TRACKER
-   ip address 10.90.244.39/24
+   ip address 142.215.104.113/31
 ```
 
 ### Loopback Interfaces
@@ -464,7 +474,7 @@ interface Loopback0
 | VRF | VNI | Multicast Group |
 | ---- | --- | --------------- |
 | default | 101 | - |
-| prod | 102 | - |
+| STATION | 201 | - |
 
 #### VXLAN Interface Device Configuration
 
@@ -475,7 +485,7 @@ interface Vxlan1
    vxlan source-interface Dps1
    vxlan udp-port 4789
    vxlan vrf default vni 101
-   vxlan vrf prod vni 102
+   vxlan vrf STATION vni 201
 ```
 
 ## Routing
@@ -496,14 +506,16 @@ service routing protocols model multi-agent
 | VRF | Routing Enabled |
 | --- | --------------- |
 | default | True |
-| prod | True |
+| MGMT | False |
+| STATION | True |
 
 #### IP Routing Device Configuration
 
 ```eos
 !
 ip routing
-ip routing vrf prod
+no ip routing vrf MGMT
+ip routing vrf STATION
 ```
 
 ### IPv6 Routing
@@ -513,8 +525,8 @@ ip routing vrf prod
 | VRF | Routing Enabled |
 | --- | --------------- |
 | default | False |
-| default | false |
-| prod | false |
+| MGMT | false |
+| STATION | false |
 
 ### Static Routes
 
@@ -522,13 +534,15 @@ ip routing vrf prod
 
 | VRF | Destination Prefix | Next Hop IP | Exit interface | Administrative Distance | Tag | Route Name | Metric |
 | --- | ------------------ | ----------- | -------------- | ----------------------- | --- | ---------- | ------ |
-| default | 0.0.0.0/0 | 10.90.245.1 | - | 1 | - | - | - |
+| MGMT | 0.0.0.0/0 | 10.90.245.1 | - | 1 | - | - | - |
+| default | 0.0.0.0/0 | 142.215.104.112 | - | 1 | - | - | - |
 
 #### Static Routes Device Configuration
 
 ```eos
 !
-ip route 0.0.0.0/0 10.90.245.1
+ip route vrf MGMT 0.0.0.0/0 10.90.245.1
+ip route 0.0.0.0/0 142.215.104.112
 ```
 
 ### Router Adaptive Virtual Topology
@@ -541,9 +555,9 @@ Topology role: pathfinder
 
 | Profile name | Load balance policy | Internet exit policy |
 | ------------ | ------------------- | -------------------- |
-| CONTROL-PLANE-PROFILE | LB-CONTROL-PLANE-PROFILE | - |
+| DEFAULT-AVT-POLICY-CONTROL-PLANE | LB-DEFAULT-AVT-POLICY-CONTROL-PLANE | - |
 | DEFAULT-AVT-POLICY-DEFAULT | LB-DEFAULT-AVT-POLICY-DEFAULT | - |
-| DEFAULT-PROD-POLICY-DEFAULT | LB-DEFAULT-PROD-POLICY-DEFAULT | - |
+| STATION-DEFAULT-DEFAULT | LB-STATION-DEFAULT-DEFAULT | - |
 
 #### AVT Policies
 
@@ -551,14 +565,14 @@ Topology role: pathfinder
 
 | Application profile | AVT Profile | Traffic Class | DSCP |
 | ------------------- | ----------- | ------------- | ---- |
-| CONTROL-PLANE-APPLICATION-PROFILE | CONTROL-PLANE-PROFILE | - | - |
+| APP-PROFILE-CONTROL-PLANE | DEFAULT-AVT-POLICY-CONTROL-PLANE | - | - |
 | default | DEFAULT-AVT-POLICY-DEFAULT | - | - |
 
-##### AVT policy DEFAULT-PROD-POLICY
+##### AVT policy STATION-DEFAULT
 
 | Application profile | AVT Profile | Traffic Class | DSCP |
 | ------------------- | ----------- | ------------- | ---- |
-| default | DEFAULT-PROD-POLICY-DEFAULT | - | - |
+| default | STATION-DEFAULT-DEFAULT | - | - |
 
 #### VRFs configuration
 
@@ -571,17 +585,17 @@ Topology role: pathfinder
 | AVT Profile | AVT ID |
 | ----------- | ------ |
 | DEFAULT-AVT-POLICY-DEFAULT | 1 |
-| CONTROL-PLANE-PROFILE | 254 |
+| DEFAULT-AVT-POLICY-CONTROL-PLANE | 254 |
 
-##### VRF prod
+##### VRF STATION
 
 | AVT policy |
 | ---------- |
-| DEFAULT-PROD-POLICY |
+| STATION-DEFAULT |
 
 | AVT Profile | AVT ID |
 | ----------- | ------ |
-| DEFAULT-PROD-POLICY-DEFAULT | 1 |
+| STATION-DEFAULT-DEFAULT | 1 |
 
 #### Router Adaptive Virtual Topology Configuration
 
@@ -592,34 +606,34 @@ router adaptive-virtual-topology
    !
    policy DEFAULT-AVT-POLICY-WITH-CP
       !
-      match application-profile CONTROL-PLANE-APPLICATION-PROFILE
-         avt profile CONTROL-PLANE-PROFILE
+      match application-profile APP-PROFILE-CONTROL-PLANE
+         avt profile DEFAULT-AVT-POLICY-CONTROL-PLANE
       !
       match application-profile default
          avt profile DEFAULT-AVT-POLICY-DEFAULT
    !
-   policy DEFAULT-PROD-POLICY
+   policy STATION-DEFAULT
       !
       match application-profile default
-         avt profile DEFAULT-PROD-POLICY-DEFAULT
+         avt profile STATION-DEFAULT-DEFAULT
    !
-   profile CONTROL-PLANE-PROFILE
-      path-selection load-balance LB-CONTROL-PLANE-PROFILE
+   profile DEFAULT-AVT-POLICY-CONTROL-PLANE
+      path-selection load-balance LB-DEFAULT-AVT-POLICY-CONTROL-PLANE
    !
    profile DEFAULT-AVT-POLICY-DEFAULT
       path-selection load-balance LB-DEFAULT-AVT-POLICY-DEFAULT
    !
-   profile DEFAULT-PROD-POLICY-DEFAULT
-      path-selection load-balance LB-DEFAULT-PROD-POLICY-DEFAULT
+   profile STATION-DEFAULT-DEFAULT
+      path-selection load-balance LB-STATION-DEFAULT-DEFAULT
    !
    vrf default
       avt policy DEFAULT-AVT-POLICY-WITH-CP
       avt profile DEFAULT-AVT-POLICY-DEFAULT id 1
-      avt profile CONTROL-PLANE-PROFILE id 254
+      avt profile DEFAULT-AVT-POLICY-CONTROL-PLANE id 254
    !
-   vrf prod
-      avt policy DEFAULT-PROD-POLICY
-      avt profile DEFAULT-PROD-POLICY-DEFAULT id 1
+   vrf STATION
+      avt policy STATION-DEFAULT
+      avt profile STATION-DEFAULT-DEFAULT id 1
 ```
 
 ### Router Traffic-Engineering
@@ -634,6 +648,8 @@ router traffic-engineering
 ```
 
 ### Router BGP
+
+ASN Notation: asplain
 
 #### Router BGP Summary
 
@@ -659,19 +675,9 @@ router traffic-engineering
 | 192.168.109.0/31 | - | WAN-OVERLAY-PEERS | - | 65199 | default |
 | 192.168.110.0/31 | - | WAN-OVERLAY-PEERS | - | 65199 | default |
 | 192.168.120.0/31 | - | WAN-OVERLAY-PEERS | - | 65199 | default |
+| 192.168.130.0/31 | - | WAN-OVERLAY-PEERS | - | 65199 | default |
 
 #### Router BGP Peer Groups
-
-##### RR-OVERLAY-PEERS
-
-| Settings | Value |
-| -------- | ----- |
-| Address Family | wan |
-| Remote AS | 65199 |
-| Source | Dps1 |
-| BFD | True |
-| Send community | all |
-| Maximum routes | 0 (no limit) |
 
 ##### WAN-OVERLAY-PEERS
 
@@ -682,6 +688,22 @@ router traffic-engineering
 | Route Reflector Client | Yes |
 | Source | Dps1 |
 | BFD | True |
+| BFD Timers | interval: 1000, min_rx: 1000, multiplier: 10 |
+| TTL Max Hops | 1 |
+| Send community | all |
+| Maximum routes | 0 (no limit) |
+
+##### WAN-RR-OVERLAY-PEERS
+
+| Settings | Value |
+| -------- | ----- |
+| Address Family | wan |
+| Remote AS | 65199 |
+| Route Reflector Client | Yes |
+| Source | Dps1 |
+| BFD | True |
+| BFD Timers | interval: 1000, min_rx: 1000, multiplier: 10 |
+| TTL Max Hops | 1 |
 | Send community | all |
 | Maximum routes | 0 (no limit) |
 
@@ -689,7 +711,7 @@ router traffic-engineering
 
 | Neighbor | Remote AS | VRF | Shutdown | Send-community | Maximum-routes | Allowas-in | BFD | RIB Pre-Policy Retain | Route-Reflector Client | Passive | TTL Max Hops |
 | -------- | --------- | --- | -------- | -------------- | -------------- | ---------- | --- | --------------------- | ---------------------- | ------- | ------------ |
-| 192.168.99.2 | Inherited from peer group RR-OVERLAY-PEERS | default | - | Inherited from peer group RR-OVERLAY-PEERS | Inherited from peer group RR-OVERLAY-PEERS | - | Inherited from peer group RR-OVERLAY-PEERS | - | - | - | - |
+| 192.168.99.2 | Inherited from peer group WAN-RR-OVERLAY-PEERS | default | - | Inherited from peer group WAN-RR-OVERLAY-PEERS | Inherited from peer group WAN-RR-OVERLAY-PEERS | - | Inherited from peer group WAN-RR-OVERLAY-PEERS(interval: 1000, min_rx: 1000, multiplier: 10) | - | Inherited from peer group WAN-RR-OVERLAY-PEERS | - | Inherited from peer group WAN-RR-OVERLAY-PEERS |
 
 #### Router BGP EVPN Address Family
 
@@ -699,8 +721,8 @@ router traffic-engineering
 
 | Peer Group | Activate | Encapsulation |
 | ---------- | -------- | ------------- |
-| RR-OVERLAY-PEERS | True | default |
 | WAN-OVERLAY-PEERS | True | default |
+| WAN-RR-OVERLAY-PEERS | True | default |
 
 #### Router BGP IPv4 SR-TE Address Family
 
@@ -708,8 +730,8 @@ router traffic-engineering
 
 | Peer Group | Activate | Route-map In | Route-map Out |
 | ---------- | -------- | ------------ | ------------- |
-| RR-OVERLAY-PEERS | True | - | - |
 | WAN-OVERLAY-PEERS | True | - | - |
+| WAN-RR-OVERLAY-PEERS | True | - | - |
 
 #### Router BGP Link-State Address Family
 
@@ -717,8 +739,8 @@ router traffic-engineering
 
 | Peer Group | Activate | Missing policy In action | Missing policy Out action |
 | ---------- | -------- | ------------------------ | ------------------------- |
-| RR-OVERLAY-PEERS | True | - | - |
 | WAN-OVERLAY-PEERS | True | - | deny |
+| WAN-RR-OVERLAY-PEERS | True | - | - |
 
 ##### Link-State Path Selection Configuration
 
@@ -732,15 +754,15 @@ router traffic-engineering
 
 | Peer Group | Activate |
 | ---------- | -------- |
-| RR-OVERLAY-PEERS | True |
 | WAN-OVERLAY-PEERS | True |
+| WAN-RR-OVERLAY-PEERS | True |
 
 #### Router BGP VRFs
 
 | VRF | Route-Distinguisher | Redistribute |
 | --- | ------------------- | ------------ |
 | default | 10.254.99.1:101 | - |
-| prod | 10.254.99.1:102 | connected |
+| STATION | 10.254.99.1:102 | connected |
 
 #### Router BGP Device Configuration
 
@@ -756,48 +778,53 @@ router bgp 65199
    bgp listen range 192.168.109.0/31 peer-group WAN-OVERLAY-PEERS remote-as 65199
    bgp listen range 192.168.110.0/31 peer-group WAN-OVERLAY-PEERS remote-as 65199
    bgp listen range 192.168.120.0/31 peer-group WAN-OVERLAY-PEERS remote-as 65199
-   neighbor RR-OVERLAY-PEERS peer group
-   neighbor RR-OVERLAY-PEERS remote-as 65199
-   neighbor RR-OVERLAY-PEERS update-source Dps1
-   neighbor RR-OVERLAY-PEERS bfd
-   neighbor RR-OVERLAY-PEERS send-community
-   neighbor RR-OVERLAY-PEERS maximum-routes 0
+   bgp listen range 192.168.130.0/31 peer-group WAN-OVERLAY-PEERS remote-as 65199
    neighbor WAN-OVERLAY-PEERS peer group
    neighbor WAN-OVERLAY-PEERS remote-as 65199
    neighbor WAN-OVERLAY-PEERS update-source Dps1
    neighbor WAN-OVERLAY-PEERS route-reflector-client
    neighbor WAN-OVERLAY-PEERS bfd
-   neighbor WAN-OVERLAY-PEERS password 7 <removed>
+   neighbor WAN-OVERLAY-PEERS bfd interval 1000 min-rx 1000 multiplier 10
+   neighbor WAN-OVERLAY-PEERS ttl maximum-hops 1
    neighbor WAN-OVERLAY-PEERS send-community
    neighbor WAN-OVERLAY-PEERS maximum-routes 0
-   neighbor 192.168.99.2 peer group RR-OVERLAY-PEERS
+   neighbor WAN-RR-OVERLAY-PEERS peer group
+   neighbor WAN-RR-OVERLAY-PEERS remote-as 65199
+   neighbor WAN-RR-OVERLAY-PEERS update-source Dps1
+   neighbor WAN-RR-OVERLAY-PEERS route-reflector-client
+   neighbor WAN-RR-OVERLAY-PEERS bfd
+   neighbor WAN-RR-OVERLAY-PEERS bfd interval 1000 min-rx 1000 multiplier 10
+   neighbor WAN-RR-OVERLAY-PEERS ttl maximum-hops 1
+   neighbor WAN-RR-OVERLAY-PEERS send-community
+   neighbor WAN-RR-OVERLAY-PEERS maximum-routes 0
+   neighbor 192.168.99.2 peer group WAN-RR-OVERLAY-PEERS
    neighbor 192.168.99.2 description arista-pf2-ch-test
    redistribute connected route-map RM-CONN-2-BGP
    !
    address-family evpn
-      neighbor RR-OVERLAY-PEERS activate
       neighbor WAN-OVERLAY-PEERS activate
+      neighbor WAN-RR-OVERLAY-PEERS activate
       next-hop resolution disabled
    !
    address-family ipv4
-      no neighbor RR-OVERLAY-PEERS activate
       no neighbor WAN-OVERLAY-PEERS activate
+      no neighbor WAN-RR-OVERLAY-PEERS activate
    !
    address-family ipv4 sr-te
-      neighbor RR-OVERLAY-PEERS activate
       neighbor WAN-OVERLAY-PEERS activate
+      neighbor WAN-RR-OVERLAY-PEERS activate
    !
    address-family link-state
-      neighbor RR-OVERLAY-PEERS activate
       neighbor WAN-OVERLAY-PEERS activate
       neighbor WAN-OVERLAY-PEERS missing-policy direction out action deny
+      neighbor WAN-RR-OVERLAY-PEERS activate
       path-selection role consumer propagator
    !
    address-family path-selection
       bgp additional-paths receive
       bgp additional-paths send any
-      neighbor RR-OVERLAY-PEERS activate
       neighbor WAN-OVERLAY-PEERS activate
+      neighbor WAN-RR-OVERLAY-PEERS activate
    !
    vrf default
       rd 10.254.99.1:101
@@ -805,7 +832,7 @@ router bgp 65199
       route-target export evpn 65199:101
       route-target export evpn route-map RM-EVPN-EXPORT-VRF-DEFAULT
    !
-   vrf prod
+   vrf STATION
       rd 10.254.99.1:102
       route-target import evpn 65199:102
       route-target export evpn 65199:102
@@ -859,13 +886,13 @@ ip prefix-list PL-LOOPBACKS-EVPN-OVERLAY
 
 | Sequence | Type | Match | Set | Sub-Route-Map | Continue |
 | -------- | ---- | ----- | --- | ------------- | -------- |
-| 10 | permit | ip address prefix-list PL-LOOPBACKS-EVPN-OVERLAY | - | - | - |
+| 10 | permit | ip address prefix-list PL-LOOPBACKS-EVPN-OVERLAY | extcommunity soo 10.254.99.1:0 additive | - | - |
 
 ##### RM-EVPN-EXPORT-VRF-DEFAULT
 
 | Sequence | Type | Match | Set | Sub-Route-Map | Continue |
 | -------- | ---- | ----- | --- | ------------- | -------- |
-| 30 | permit | ip address prefix-list PL-LOOPBACKS-EVPN-OVERLAY | - | - | - |
+| 10 | permit | extcommunity ECL-EVPN-SOO | - | - | - |
 
 #### Route-maps Device Configuration
 
@@ -873,9 +900,25 @@ ip prefix-list PL-LOOPBACKS-EVPN-OVERLAY
 !
 route-map RM-CONN-2-BGP permit 10
    match ip address prefix-list PL-LOOPBACKS-EVPN-OVERLAY
+   set extcommunity soo 10.254.99.1:0 additive
 !
-route-map RM-EVPN-EXPORT-VRF-DEFAULT permit 30
-   match ip address prefix-list PL-LOOPBACKS-EVPN-OVERLAY
+route-map RM-EVPN-EXPORT-VRF-DEFAULT permit 10
+   match extcommunity ECL-EVPN-SOO
+```
+
+### IP Extended Community Lists
+
+#### IP Extended Community Lists Summary
+
+| List Name | Type | Extended Communities |
+| --------- | ---- | -------------------- |
+| ECL-EVPN-SOO | permit | soo 10.254.99.1:0 |
+
+#### IP Extended Community Lists Device Configuration
+
+```eos
+!
+ip extcommunity-list ECL-EVPN-SOO permit soo 10.254.99.1:0
 ```
 
 ## VRF Instances
@@ -884,13 +927,16 @@ route-map RM-EVPN-EXPORT-VRF-DEFAULT permit 30
 
 | VRF Name | IP Routing |
 | -------- | ---------- |
-| prod | enabled |
+| MGMT | disabled |
+| STATION | enabled |
 
 ### VRF Instances Device Configuration
 
 ```eos
 !
-vrf instance prod
+vrf instance MGMT
+!
+vrf instance STATION
 ```
 
 ## Platform
@@ -901,13 +947,13 @@ vrf instance prod
 
 | Settings | Value |
 | -------- | ----- |
-| Maximum CPU Allocation | 1 |
+| Maximum CPU Allocation | 4 |
 
 ### Platform Device Configuration
 
 ```eos
 !
-platform sfe data-plane cpu allocation maximum 1
+platform sfe data-plane cpu allocation maximum 4
 ```
 
 ## System L1
@@ -936,15 +982,15 @@ system l1
 
 | Name | Source Prefix | Destination Prefix | Protocols | Protocol Ranges | TCP Source Port Set | TCP Destination Port Set | UDP Source Port Set | UDP Destination Port Set |
 | ---- | ------------- | ------------------ | --------- | --------------- | ------------------- | ------------------------ | ------------------- | ------------------------ |
-| CONTROL-PLANE-APPLICATION | CONTROL-PLANE-APP-SRC-PREFIXES | - | - | - | - | - | - | - |
+| APP-CONTROL-PLANE | PFX-LOCAL-VTEP-IP | - | - | - | - | - | - | - |
 
 ### Application Profiles
 
-#### Application Profile Name CONTROL-PLANE-APPLICATION-PROFILE
+#### Application Profile Name APP-PROFILE-CONTROL-PLANE
 
 | Type | Name | Service |
 | ---- | ---- | ------- |
-| application | CONTROL-PLANE-APPLICATION | - |
+| application | APP-CONTROL-PLANE | - |
 
 ### Field Sets
 
@@ -952,7 +998,7 @@ system l1
 
 | Name | Prefixes |
 | ---- | -------- |
-| CONTROL-PLANE-APP-SRC-PREFIXES | 192.168.99.1/32 |
+| PFX-LOCAL-VTEP-IP | 192.168.99.1/32 |
 
 ### Router Application-Traffic-Recognition Device Configuration
 
@@ -960,13 +1006,13 @@ system l1
 !
 application traffic recognition
    !
-   application ipv4 CONTROL-PLANE-APPLICATION
-      source prefix field-set CONTROL-PLANE-APP-SRC-PREFIXES
+   application ipv4 APP-CONTROL-PLANE
+      source prefix field-set PFX-LOCAL-VTEP-IP
    !
-   application-profile CONTROL-PLANE-APPLICATION-PROFILE
-      application CONTROL-PLANE-APPLICATION
+   application-profile APP-PROFILE-CONTROL-PLANE
+      application APP-CONTROL-PLANE
    !
-   field-set ipv4 prefix CONTROL-PLANE-APP-SRC-PREFIXES
+   field-set ipv4 prefix PFX-LOCAL-VTEP-IP
       192.168.99.1/32
 ```
 
@@ -1003,15 +1049,22 @@ application traffic recognition
 
 | Router IP | Name | IPv4 address(es) |
 | --------- | ---- | ---------------- |
-| 192.168.99.2 | arista-pf2-ch-test | 10.90.244.40 |
+| 192.168.99.2 | arista-pf2-ch-test | 142.215.104.115 |
+
+##### Path Group LAN_HA
+
+| Setting | Value |
+| ------  | ----- |
+| Path Group ID | 65535 |
+| Flow assignment | LAN |
 
 #### Load-balance Policies
 
 | Policy Name | Jitter (ms) | Latency (ms) | Loss Rate (%) | Path Groups (priority) | Lowest Hop Count |
 | ----------- | ----------- | ------------ | ------------- | ---------------------- | ---------------- |
-| LB-CONTROL-PLANE-PROFILE | - | - | - | internet (1) | False |
-| LB-DEFAULT-AVT-POLICY-DEFAULT | - | - | - | internet (1) | False |
-| LB-DEFAULT-PROD-POLICY-DEFAULT | - | - | - | internet (1) | False |
+| LB-DEFAULT-AVT-POLICY-CONTROL-PLANE | - | - | - | internet (1)<br>LAN_HA (1) | False |
+| LB-DEFAULT-AVT-POLICY-DEFAULT | - | - | - | internet (1)<br>LAN_HA (1) | False |
+| LB-STATION-DEFAULT-DEFAULT | - | - | - | internet (1)<br>LAN_HA (1) | False |
 
 #### Router Path-selection Device Configuration
 
@@ -1028,16 +1081,22 @@ router path-selection
       !
       peer static router-ip 192.168.99.2
          name arista-pf2-ch-test
-         ipv4 address 10.90.244.40
+         ipv4 address 142.215.104.115
    !
-   load-balance policy LB-CONTROL-PLANE-PROFILE
+   path-group LAN_HA id 65535
+      flow assignment lan
+   !
+   load-balance policy LB-DEFAULT-AVT-POLICY-CONTROL-PLANE
       path-group internet
+      path-group LAN_HA
    !
    load-balance policy LB-DEFAULT-AVT-POLICY-DEFAULT
       path-group internet
+      path-group LAN_HA
    !
-   load-balance policy LB-DEFAULT-PROD-POLICY-DEFAULT
+   load-balance policy LB-STATION-DEFAULT-DEFAULT
       path-group internet
+      path-group LAN_HA
 ```
 
 ## STUN
@@ -1046,7 +1105,7 @@ router path-selection
 
 | Server Local Interfaces | Bindings Timeout (s) | SSL Profile | SSL Connection Lifetime | Port |
 | ----------------------- | -------------------- | ----------- | ----------------------- | ---- |
-| Ethernet1 | - | - | - | 3478 |
+| Ethernet1 | - | STUN-DTLS | - | 3478 |
 
 ### STUN Device Configuration
 
@@ -1055,4 +1114,5 @@ router path-selection
 stun
    server
       local-interface Ethernet1
+      ssl profile STUN-DTLS
 ```

@@ -1,19 +1,20 @@
 ---
-
-
 wan_virtual_topologies:
+# vrf VNI definition for interface VXLAN
   vrfs:
     - name: default
+      wan_vni: 101
       policy: DEFAULT-AVT-POLICY
-    - name: prod
-      policy: DEFAULT-PROD-POLICY
+    - name: STATION
+      wan_vni: 201
+      policy: STATION-DEFAULT
   policies:
     - name: DEFAULT-AVT-POLICY
       default_virtual_topology:
         path_groups:
           - names: [internet]
             preference: preferred
-    - name: DEFAULT-PROD-POLICY
+    - name: STATION-DEFAULT
       default_virtual_topology:
         path_groups:
           - names: [internet]

@@ -2,7 +2,7 @@
 
 # WAN Management Settings
 
-mgmt_interface_vrf: default
+# mgmt_interface_vrf: default
 mgmt_gateway: 10.90.245.1
 
 custom_structured_configuration_switchport_default:
@@ -20,6 +20,12 @@ local_users:
     privilege: 15
     sha512_password: "$6$JrS3d2nAMOGnIlAh$h3J1UHELqo4rO4X.11QwVWltyNzvT4EV/7ufhuJ.yonFGjRWm8YpCbLN3IldeWZqs8YIOoKSrdx2f6Dsgg1OF0"
 
+  - name: neteng1
+    role: network-admin
+    privilege: 15
+    sha512_password: "$1$X3t8pt2v$FWMtZOAEnRyW6B2VRxTQW/"
+
+
 cvp_instance_ips: ["apiserver.cv-staging.corp.arista.io"]
 
 custom_structured_configuration_daemon_terminattr:
@@ -32,31 +38,62 @@ custom_structured_configuration_system:
     unsupported_speed_action: "error"
     unsupported_error_correction_action: "error"
 
-custom_structured_configuration_ip_domain_lookup:
-  source_interfaces:
-    - name: Management1
+# custom_structured_configuration_ip_domain_lookup:
+#   source_interfaces:
+#     - name: Management1
 
 custom_structured_configuration_ip_name_servers:
-  - ip_address: 10.14.0.1
-    vrf: default
-  - ip_address: 172.22.22.40
-    vrf: default
+  # - ip_address: 10.14.0.1
+  #   vrf: default
+  # - ip_address: 172.22.22.40
+  #   vrf: default
   - ip_address: 8.8.4.4
     vrf: default
-    priority: 4
+    # priority: 4
   - ip_address: 8.8.8.8
     vrf: default
-    priority: 4
+    # priority: 4
 
 ntp_settings:
+  server_vrf: default
   servers:
-    - name: 10.41.194.6
-    - name: 10.85.14.245
+    # - name: 10.41.194.6
+    # - name: 10.85.14.245
     - name: time.google.com
 
 custom_structured_configuration_management_ssh:
   client_alive:
     interval: 180
+
+aaa_authorization:
+  exec:
+    default: local
+
+banners:
+
+  # Multiline string ending with EOF on the last line.
+  login: |
+    ************************************************************************
+
+      WARNING: This system is for the use of authorized clients only.
+                Individuals using the computer network system without
+                authorization, or in excess of their authorization, are
+                subject to having all their activity on this computer
+                network system monitored and recorded by system
+                personnel.  To protect the computer network system from
+                unauthorized use and to ensure the computer network systems
+                is functioning properly, system administrators monitor this
+                system.  Anyone using this computer network system
+                expressly consents to such monitoring and is advised that
+                if such monitoring reveals possible conduct of criminal
+                activity, system personnel may provide the evidence of
+                such activity to law enforcement officers.
+
+                Access is restricted to authorized users only.
+                Unauthorized access is a violation of state and federal,
+                civil and criminal laws.
+    **************************************************************************
+    EOF
 
 skipped_tests:
   - category: AvdTestHardware

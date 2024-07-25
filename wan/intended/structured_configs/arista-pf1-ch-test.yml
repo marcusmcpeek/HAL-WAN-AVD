@@ -28,28 +28,41 @@ router_bgp:
   - prefix: 192.168.120.0/31
     peer_group: WAN-OVERLAY-PEERS
     remote_as: '65199'
+  - prefix: 192.168.130.0/31
+    peer_group: WAN-OVERLAY-PEERS
+    remote_as: '65199'
   peer_groups:
   - name: WAN-OVERLAY-PEERS
     type: wan
     update_source: Dps1
     bfd: true
-    password: htm4AZe9mIQOO1uiMuGgYQ==
     send_community: all
     maximum_routes: 0
     remote_as: '65199'
+    ttl_maximum_hops: 1
     route_reflector_client: true
-  - name: RR-OVERLAY-PEERS
+    bfd_timers:
+      interval: 1000
+      min_rx: 1000
+      multiplier: 10
+  - name: WAN-RR-OVERLAY-PEERS
     type: wan
     update_source: Dps1
     bfd: true
     send_community: all
     maximum_routes: 0
     remote_as: '65199'
+    ttl_maximum_hops: 1
+    bfd_timers:
+      interval: 1000
+      min_rx: 1000
+      multiplier: 10
+    route_reflector_client: true
   address_family_evpn:
     peer_groups:
     - name: WAN-OVERLAY-PEERS
       activate: true
-    - name: RR-OVERLAY-PEERS
+    - name: WAN-RR-OVERLAY-PEERS
       activate: true
     next_hop:
       resolution_disabled: true
@@ -57,13 +70,13 @@ router_bgp:
     peer_groups:
     - name: WAN-OVERLAY-PEERS
       activate: false
-    - name: RR-OVERLAY-PEERS
+    - name: WAN-RR-OVERLAY-PEERS
       activate: false
   address_family_ipv4_sr_te:
     peer_groups:
     - name: WAN-OVERLAY-PEERS
       activate: true
-    - name: RR-OVERLAY-PEERS
+    - name: WAN-RR-OVERLAY-PEERS
       activate: true
   address_family_link_state:
     peer_groups:
@@ -71,7 +84,7 @@ router_bgp:
       activate: true
       missing_policy:
         direction_out_action: deny
-    - name: RR-OVERLAY-PEERS
+    - name: WAN-RR-OVERLAY-PEERS
       activate: true
     path_selection:
       roles:
@@ -81,7 +94,7 @@ router_bgp:
     peer_groups:
     - name: WAN-OVERLAY-PEERS
       activate: true
-    - name: RR-OVERLAY-PEERS
+    - name: WAN-RR-OVERLAY-PEERS
       activate: true
     bgp:
       additional_paths:
@@ -90,7 +103,7 @@ router_bgp:
           any: true
   neighbors:
   - ip_address: 192.168.99.2
-    peer_group: RR-OVERLAY-PEERS
+    peer_group: WAN-RR-OVERLAY-PEERS
     peer: arista-pf2-ch-test
     description: arista-pf2-ch-test
   vrfs:
@@ -106,7 +119,7 @@ router_bgp:
         route_targets:
         - 65199:101
         - route-map RM-EVPN-EXPORT-VRF-DEFAULT
-  - name: prod
+  - name: STATION
     router_id: 10.254.99.1
     rd: 10.254.99.1:102
     route_targets:
@@ -121,9 +134,11 @@ router_bgp:
     redistribute_routes:
     - source_protocol: connected
 static_routes:
-- vrf: default
+- vrf: MGMT
   destination_address_prefix: 0.0.0.0/0
   gateway: 10.90.245.1
+- destination_address_prefix: 0.0.0.0/0
+  gateway: 142.215.104.112
 service_routing_protocols_model: multi-agent
 ip_routing: true
 daemon_terminattr:
@@ -132,15 +147,11 @@ daemon_terminattr:
   cvauth:
     method: token-secure
     token_file: /tmp/cv-onboarding-token
-  cvvrf: default
+  cvvrf: MGMT
   smashexcludes: ale,flexCounter,hardware,kni,pulse,strata
   ingestexclude: /Sysdb/cell/1/agent,/Sysdb/cell/2/agent
   disable_aaa: true
-vlan_internal_order:
-  allocation: ascending
-  range:
-    beginning: 1006
-    ending: 1199
+transceiver_qsfp_default_mode_4x10: false
 spanning_tree:
   mode: none
 local_users:
@@ -148,47 +159,43 @@ local_users:
   role: network-admin
   privilege: 15
   sha512_password: $6$JrS3d2nAMOGnIlAh$h3J1UHELqo4rO4X.11QwVWltyNzvT4EV/7ufhuJ.yonFGjRWm8YpCbLN3IldeWZqs8YIOoKSrdx2f6Dsgg1OF0
+- name: neteng1
+  role: network-admin
+  privilege: 15
+  sha512_password: $1$X3t8pt2v$FWMtZOAEnRyW6B2VRxTQW/
 vrfs:
-- name: default
+- name: MGMT
   ip_routing: false
-- name: prod
+- name: STATION
   tenant: hawaiianairlines
   ip_routing: true
 management_interfaces:
 - name: Management1
   description: oob_management
   shutdown: false
-  vrf: default
+  vrf: MGMT
   ip_address: 10.90.245.41/24
   gateway: 10.90.245.1
   type: oob
 platform:
   sfe:
-    data_plane_cpu_allocation_max: 1
+    data_plane_cpu_allocation_max: 4
 management_api_http:
   enable_vrfs:
-  - name: default
+  - name: MGMT
   enable_https: true
 ntp:
-  local_interface:
-    name: Management1
-    vrf: default
   servers:
-  - name: 10.41.194.6
-    vrf: default
-    preferred: true
-  - name: 10.85.14.245
-    vrf: default
   - name: time.google.com
     vrf: default
+    preferred: true
 ethernet_interfaces:
 - name: Ethernet1
   peer_type: l3_interface
-  ip_address: 10.90.244.39/24
+  ip_address: 142.215.104.113/31
   shutdown: false
   type: routed
-  flow_tracker:
-    hardware: WAN-FLOW-TRACKER
+  description: internet
 loopback_interfaces:
 - name: Loopback0
   description: Router_ID
@@ -206,26 +213,24 @@ route_maps:
     type: permit
     match:
     - ip address prefix-list PL-LOOPBACKS-EVPN-OVERLAY
+    set:
+    - extcommunity soo 10.254.99.1:0 additive
 - name: RM-EVPN-EXPORT-VRF-DEFAULT
   sequence_numbers:
-  - sequence: 30
+  - sequence: 10
     type: permit
     match:
-    - ip address prefix-list PL-LOOPBACKS-EVPN-OVERLAY
-flow_tracking:
-  hardware:
-    trackers:
-    - name: WAN-FLOW-TRACKER
-      record_export:
-        on_inactive_timeout: 70000
-        on_interval: 5000
-      exporters:
-      - name: DPI-EXPORTER
-        collector:
-          host: 127.0.0.1
-        local_interface: Loopback0
-        template_interval: 5000
-    shutdown: false
+    - extcommunity ECL-EVPN-SOO
+agents:
+- name: KernelFib
+  environment_variables:
+  - name: KERNELFIB_PROGRAM_ALL_ECMP
+    value: '''true'''
+ip_extcommunity_lists:
+- name: ECL-EVPN-SOO
+  entries:
+  - type: permit
+    extcommunities: soo 10.254.99.1:0
 ip_security:
   ike_policies:
   - name: CP-IKE-POLICY
@@ -233,52 +238,62 @@ ip_security:
   sa_policies:
   - name: CP-SA-POLICY
     esp:
-      encryption: aes128
+      encryption: aes256gcm128
     pfs_dh_group: 14
   profiles:
   - name: CP-PROFILE
     ike_policy: CP-IKE-POLICY
     sa_policy: CP-SA-POLICY
     connection: start
-    shared_key: 0110100A480E0A0E231D1E
+    shared_key: 050307182045470817041E00
     dpd:
       interval: 10
       time: 50
       action: clear
     mode: transport
+management_security:
+  ssl_profiles:
+  - name: STUN-DTLS
+    certificate:
+      file: STUN-DTLS.crt
+      key: STUN-DTLS.key
+    trust_certificate:
+      certificates:
+      - aristaDeviceCertProvisionerDefaultRootCA.crt
+    tls_versions: '1.2'
 router_adaptive_virtual_topology:
   topology_role: pathfinder
   profiles:
-  - name: CONTROL-PLANE-PROFILE
-    load_balance_policy: LB-CONTROL-PLANE-PROFILE
-  - name: DEFAULT-PROD-POLICY-DEFAULT
-    load_balance_policy: LB-DEFAULT-PROD-POLICY-DEFAULT
+  - name: DEFAULT-AVT-POLICY-CONTROL-PLANE
+    load_balance_policy: LB-DEFAULT-AVT-POLICY-CONTROL-PLANE
   - name: DEFAULT-AVT-POLICY-DEFAULT
     load_balance_policy: LB-DEFAULT-AVT-POLICY-DEFAULT
+  - name: STATION-DEFAULT-DEFAULT
+    load_balance_policy: LB-STATION-DEFAULT-DEFAULT
   vrfs:
   - name: default
     policy: DEFAULT-AVT-POLICY-WITH-CP
     profiles:
-    - name: CONTROL-PLANE-PROFILE
+    - name: DEFAULT-AVT-POLICY-CONTROL-PLANE
       id: 254
     - name: DEFAULT-AVT-POLICY-DEFAULT
       id: 1
-  - name: prod
-    policy: DEFAULT-PROD-POLICY
+  - name: STATION
+    policy: STATION-DEFAULT
     profiles:
-    - name: DEFAULT-PROD-POLICY-DEFAULT
+    - name: STATION-DEFAULT-DEFAULT
       id: 1
   policies:
-  - name: DEFAULT-PROD-POLICY
-    matches:
-    - application_profile: default
-      avt_profile: DEFAULT-PROD-POLICY-DEFAULT
   - name: DEFAULT-AVT-POLICY-WITH-CP
     matches:
-    - application_profile: CONTROL-PLANE-APPLICATION-PROFILE
-      avt_profile: CONTROL-PLANE-PROFILE
+    - application_profile: APP-PROFILE-CONTROL-PLANE
+      avt_profile: DEFAULT-AVT-POLICY-CONTROL-PLANE
     - application_profile: default
       avt_profile: DEFAULT-AVT-POLICY-DEFAULT
+  - name: STATION-DEFAULT
+    matches:
+    - application_profile: default
+      avt_profile: STATION-DEFAULT-DEFAULT
 router_bfd:
   multihop:
     interval: 300
@@ -296,45 +311,53 @@ router_path_selection:
     - router_ip: 192.168.99.2
       name: arista-pf2-ch-test
       ipv4_addresses:
-      - 10.90.244.40
+      - 142.215.104.115
     ipsec_profile: CP-PROFILE
+  - name: LAN_HA
+    id: 65535
+    flow_assignment: lan
   peer_dynamic_source: stun
   load_balance_policies:
-  - name: LB-CONTROL-PLANE-PROFILE
+  - name: LB-DEFAULT-AVT-POLICY-CONTROL-PLANE
     path_groups:
     - name: internet
-  - name: LB-DEFAULT-PROD-POLICY-DEFAULT
-    path_groups:
-    - name: internet
+    - name: LAN_HA
   - name: LB-DEFAULT-AVT-POLICY-DEFAULT
     path_groups:
     - name: internet
+    - name: LAN_HA
+  - name: LB-STATION-DEFAULT-DEFAULT
+    path_groups:
+    - name: internet
+    - name: LAN_HA
 router_traffic_engineering:
   enabled: true
 stun:
   server:
     local_interfaces:
     - Ethernet1
+    ssl_profile: STUN-DTLS
 application_traffic_recognition:
   application_profiles:
-  - name: CONTROL-PLANE-APPLICATION-PROFILE
+  - name: APP-PROFILE-CONTROL-PLANE
     applications:
-    - name: CONTROL-PLANE-APPLICATION
+    - name: APP-CONTROL-PLANE
   applications:
     ipv4_applications:
-    - name: CONTROL-PLANE-APPLICATION
-      src_prefix_set_name: CONTROL-PLANE-APP-SRC-PREFIXES
+    - name: APP-CONTROL-PLANE
+      src_prefix_set_name: PFX-LOCAL-VTEP-IP
   field_sets:
     ipv4_prefixes:
-    - name: CONTROL-PLANE-APP-SRC-PREFIXES
+    - name: PFX-LOCAL-VTEP-IP
       prefix_values:
       - 192.168.99.1/32
 dps_interfaces:
 - name: Dps1
   description: DPS Interface
+  mtu: 9214
   ip_address: 192.168.99.1/32
   flow_tracker:
-    hardware: WAN-FLOW-TRACKER
+    hardware: FLOW-TRACKER
 vxlan_interface:
   Vxlan1:
     description: arista-pf1-ch-test_VTEP
@@ -344,8 +367,22 @@ vxlan_interface:
       vrfs:
       - name: default
         vni: 101
-      - name: prod
-        vni: 102
+      - name: STATION
+        vni: 201
+flow_tracking:
+  hardware:
+    trackers:
+    - name: FLOW-TRACKER
+      record_export:
+        on_inactive_timeout: 70000
+        on_interval: 300000
+      exporters:
+      - name: CV-TELEMETRY
+        collector:
+          host: 127.0.0.1
+        local_interface: Loopback0
+        template_interval: 3600000
+    shutdown: false
 metadata:
   cv_tags:
     device_tags:
@@ -362,12 +399,13 @@ metadata:
         value: internet
   cv_pathfinder:
     role: pathfinder
+    ssl_profile: STUN-DTLS
     vtep_ip: 192.168.99.1
     interfaces:
     - name: Ethernet1
       carrier: internet
       pathgroup: internet
-      public_ip: 10.90.244.39
+      public_ip: 142.215.104.113
     pathgroups:
     - name: internet
       carriers:
@@ -376,66 +414,56 @@ metadata:
     - name: Global
       id: 1
       zones:
-      - name: DEFAULT-ZONE
+      - name: Global-ZONE
         id: 1
         sites:
-        - name: Site-Tier1
-          id: 100
-        - name: Site-EQX-SEA
+        - name: Site-EQX-1
           id: 108
-        - name: Site-EQX-ASH
+        - name: Site-EQX-2
           id: 109
         - name: Site-DRF
-          id: 110
-        - name: Site-Tier3
-          id: 120
+          id: 111
+        - name: Site-Tier1
+          id: 130
     vrfs:
     - name: default
       vni: 101
       avts:
       - id: 254
-        name: CONTROL-PLANE-PROFILE
+        name: DEFAULT-AVT-POLICY-CONTROL-PLANE
         pathgroups:
         - name: internet
+          preference: preferred
+        - name: LAN_HA
           preference: preferred
       - id: 1
         name: DEFAULT-AVT-POLICY-DEFAULT
         pathgroups:
         - name: internet
           preference: preferred
-    - name: prod
-      vni: 102
+        - name: LAN_HA
+          preference: preferred
+    - name: STATION
+      vni: 201
       avts:
       - id: 1
-        name: DEFAULT-PROD-POLICY-DEFAULT
+        name: STATION-DEFAULT-DEFAULT
         pathgroups:
         - name: internet
           preference: preferred
+        - name: LAN_HA
+          preference: preferred
 switchport_default:
   mode: routed
-agents:
-- name: KernelFib
-  environment_variables:
-  - name: KERNELFIB_PROGRAM_ALL_ECMP
-    value: '''true'''
 system:
   l1:
     unsupported_speed_action: error
     unsupported_error_correction_action: error
-ip_domain_lookup:
-  source_interfaces:
-  - name: Management1
 ip_name_servers:
-- ip_address: 10.14.0.1
-  vrf: default
-- ip_address: 172.22.22.40
-  vrf: default
 - ip_address: 8.8.4.4
   vrf: default
-  priority: 4
 - ip_address: 8.8.8.8
   vrf: default
-  priority: 4
 management_ssh:
   client_alive:
     interval: 180

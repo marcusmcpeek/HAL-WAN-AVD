@@ -1,8 +1,8 @@
-hostname: arista-pf2-ch-test
+hostname: Site-Tier1-130-INET-SDWAN
 is_deployed: true
 router_bgp:
   as: '65199'
-  router_id: 10.254.99.2
+  router_id: 10.254.130.1
   bgp:
     default:
       ipv4_unicast: false
@@ -11,26 +11,6 @@ router_bgp:
   redistribute_routes:
   - source_protocol: connected
     route_map: RM-CONN-2-BGP
-  bgp_cluster_id: 10.254.99.2
-  listen_ranges:
-  - prefix: 192.168.100.0/31
-    peer_group: WAN-OVERLAY-PEERS
-    remote_as: '65199'
-  - prefix: 192.168.108.0/31
-    peer_group: WAN-OVERLAY-PEERS
-    remote_as: '65199'
-  - prefix: 192.168.109.0/31
-    peer_group: WAN-OVERLAY-PEERS
-    remote_as: '65199'
-  - prefix: 192.168.110.0/31
-    peer_group: WAN-OVERLAY-PEERS
-    remote_as: '65199'
-  - prefix: 192.168.120.0/31
-    peer_group: WAN-OVERLAY-PEERS
-    remote_as: '65199'
-  - prefix: 192.168.130.0/31
-    peer_group: WAN-OVERLAY-PEERS
-    remote_as: '65199'
   peer_groups:
   - name: WAN-OVERLAY-PEERS
     type: wan
@@ -40,61 +20,34 @@ router_bgp:
     maximum_routes: 0
     remote_as: '65199'
     ttl_maximum_hops: 1
-    route_reflector_client: true
     bfd_timers:
       interval: 1000
       min_rx: 1000
       multiplier: 10
-  - name: WAN-RR-OVERLAY-PEERS
-    type: wan
-    update_source: Dps1
-    bfd: true
-    send_community: all
-    maximum_routes: 0
-    remote_as: '65199'
-    ttl_maximum_hops: 1
-    bfd_timers:
-      interval: 1000
-      min_rx: 1000
-      multiplier: 10
-    route_reflector_client: true
   address_family_evpn:
     peer_groups:
     - name: WAN-OVERLAY-PEERS
       activate: true
-    - name: WAN-RR-OVERLAY-PEERS
-      activate: true
-    next_hop:
-      resolution_disabled: true
+      route_map_in: RM-EVPN-SOO-IN
+      route_map_out: RM-EVPN-SOO-OUT
   address_family_ipv4:
     peer_groups:
     - name: WAN-OVERLAY-PEERS
-      activate: false
-    - name: WAN-RR-OVERLAY-PEERS
       activate: false
   address_family_ipv4_sr_te:
     peer_groups:
     - name: WAN-OVERLAY-PEERS
       activate: true
-    - name: WAN-RR-OVERLAY-PEERS
-      activate: true
   address_family_link_state:
     peer_groups:
     - name: WAN-OVERLAY-PEERS
       activate: true
-      missing_policy:
-        direction_out_action: deny
-    - name: WAN-RR-OVERLAY-PEERS
-      activate: true
     path_selection:
       roles:
-        consumer: true
-        propagator: true
+        producer: true
   address_family_path_selection:
     peer_groups:
     - name: WAN-OVERLAY-PEERS
-      activate: true
-    - name: WAN-RR-OVERLAY-PEERS
       activate: true
     bgp:
       additional_paths:
@@ -103,12 +56,16 @@ router_bgp:
           any: true
   neighbors:
   - ip_address: 192.168.99.1
-    peer_group: WAN-RR-OVERLAY-PEERS
+    peer_group: WAN-OVERLAY-PEERS
     peer: arista-pf1-ch-test
     description: arista-pf1-ch-test
+  - ip_address: 192.168.99.2
+    peer_group: WAN-OVERLAY-PEERS
+    peer: arista-pf2-ch-test
+    description: arista-pf2-ch-test
   vrfs:
   - name: default
-    rd: 10.254.99.2:101
+    rd: 10.254.130.1:101
     route_targets:
       import:
       - address_family: evpn
@@ -120,8 +77,8 @@ router_bgp:
         - 65199:101
         - route-map RM-EVPN-EXPORT-VRF-DEFAULT
   - name: STATION
-    router_id: 10.254.99.2
-    rd: 10.254.99.2:102
+    router_id: 10.254.130.1
+    rd: 10.254.130.1:102
     route_targets:
       import:
       - address_family: evpn
@@ -172,12 +129,9 @@ management_interfaces:
   description: oob_management
   shutdown: false
   vrf: MGMT
-  ip_address: 10.90.245.35/24
+  ip_address: 10.90.245.42/24
   gateway: 10.90.245.1
   type: oob
-platform:
-  sfe:
-    data_plane_cpu_allocation_max: 4
 management_api_http:
   enable_vrfs:
   - name: MGMT
@@ -188,9 +142,9 @@ ntp:
     vrf: default
     preferred: true
 ethernet_interfaces:
-- name: Ethernet1
+- name: Ethernet1/1
   peer_type: l3_interface
-  ip_address: 142.215.104.115/31
+  ip_address: 65.76.116.106/30
   shutdown: false
   type: routed
   description: internet
@@ -198,12 +152,12 @@ loopback_interfaces:
 - name: Loopback0
   description: Router_ID
   shutdown: false
-  ip_address: 10.254.99.2/32
+  ip_address: 10.254.130.1/32
 prefix_lists:
 - name: PL-LOOPBACKS-EVPN-OVERLAY
   sequence_numbers:
   - sequence: 10
-    action: permit 10.254.99.0/30 eq 32
+    action: permit 10.254.130.1/32 eq 32
 route_maps:
 - name: RM-CONN-2-BGP
   sequence_numbers:
@@ -212,7 +166,21 @@ route_maps:
     match:
     - ip address prefix-list PL-LOOPBACKS-EVPN-OVERLAY
     set:
-    - extcommunity soo 10.254.99.2:0 additive
+    - extcommunity soo 10.254.130.1:130 additive
+- name: RM-EVPN-SOO-IN
+  sequence_numbers:
+  - sequence: 10
+    type: deny
+    match:
+    - extcommunity ECL-EVPN-SOO
+  - sequence: 20
+    type: permit
+- name: RM-EVPN-SOO-OUT
+  sequence_numbers:
+  - sequence: 10
+    type: permit
+    set:
+    - extcommunity soo 10.254.130.1:130 additive
 - name: RM-EVPN-EXPORT-VRF-DEFAULT
   sequence_numbers:
   - sequence: 10
@@ -228,17 +196,30 @@ ip_extcommunity_lists:
 - name: ECL-EVPN-SOO
   entries:
   - type: permit
-    extcommunities: soo 10.254.99.2:0
+    extcommunities: soo 10.254.130.1:130
 ip_security:
   ike_policies:
   - name: CP-IKE-POLICY
-    local_id: 192.168.99.2
+    local_id: 192.168.130.1
   sa_policies:
+  - name: DP-SA-POLICY
+    esp:
+      encryption: aes256gcm128
+    pfs_dh_group: 14
   - name: CP-SA-POLICY
     esp:
       encryption: aes256gcm128
     pfs_dh_group: 14
   profiles:
+  - name: DP-PROFILE
+    sa_policy: DP-SA-POLICY
+    connection: start
+    shared_key: 08294D5908100C161C0A0516
+    dpd:
+      interval: 10
+      time: 50
+      action: clear
+    mode: transport
   - name: CP-PROFILE
     ike_policy: CP-IKE-POLICY
     sa_policy: CP-SA-POLICY
@@ -249,6 +230,8 @@ ip_security:
       time: 50
       action: clear
     mode: transport
+  key_controller:
+    profile: DP-PROFILE
 management_security:
   ssl_profiles:
   - name: STUN-DTLS
@@ -260,7 +243,16 @@ management_security:
       - aristaDeviceCertProvisionerDefaultRootCA.crt
     tls_versions: '1.2'
 router_adaptive_virtual_topology:
-  topology_role: pathfinder
+  topology_role: edge
+  region:
+    name: Global
+    id: 1
+  zone:
+    name: Global-ZONE
+    id: 1
+  site:
+    name: Site-Tier1
+    id: 130
   profiles:
   - name: DEFAULT-AVT-POLICY-CONTROL-PLANE
     load_balance_policy: LB-DEFAULT-AVT-POLICY-CONTROL-PLANE
@@ -304,37 +296,44 @@ router_path_selection:
   - name: internet
     id: 101
     local_interfaces:
-    - name: Ethernet1
+    - name: Ethernet1/1
+      stun:
+        server_profiles:
+        - internet-arista-pf1-ch-test-Ethernet1
+        - internet-arista-pf2-ch-test-Ethernet1
+    dynamic_peers:
+      enabled: true
     static_peers:
     - router_ip: 192.168.99.1
       name: arista-pf1-ch-test
       ipv4_addresses:
       - 142.215.104.113
+    - router_ip: 192.168.99.2
+      name: arista-pf2-ch-test
+      ipv4_addresses:
+      - 142.215.104.115
     ipsec_profile: CP-PROFILE
-  - name: LAN_HA
-    id: 65535
-    flow_assignment: lan
-  peer_dynamic_source: stun
   load_balance_policies:
   - name: LB-DEFAULT-AVT-POLICY-CONTROL-PLANE
     path_groups:
     - name: internet
-    - name: LAN_HA
   - name: LB-DEFAULT-AVT-POLICY-DEFAULT
     path_groups:
     - name: internet
-    - name: LAN_HA
   - name: LB-STATION-DEFAULT-DEFAULT
     path_groups:
     - name: internet
-    - name: LAN_HA
 router_traffic_engineering:
   enabled: true
 stun:
-  server:
-    local_interfaces:
-    - Ethernet1
-    ssl_profile: STUN-DTLS
+  client:
+    server_profiles:
+    - name: internet-arista-pf1-ch-test-Ethernet1
+      ip_address: 142.215.104.113
+      ssl_profile: STUN-DTLS
+    - name: internet-arista-pf2-ch-test-Ethernet1
+      ip_address: 142.215.104.115
+      ssl_profile: STUN-DTLS
 application_traffic_recognition:
   application_profiles:
   - name: APP-PROFILE-CONTROL-PLANE
@@ -343,22 +342,23 @@ application_traffic_recognition:
   applications:
     ipv4_applications:
     - name: APP-CONTROL-PLANE
-      src_prefix_set_name: PFX-LOCAL-VTEP-IP
+      dest_prefix_set_name: PFX-PATHFINDERS
   field_sets:
     ipv4_prefixes:
-    - name: PFX-LOCAL-VTEP-IP
+    - name: PFX-PATHFINDERS
       prefix_values:
+      - 192.168.99.1/32
       - 192.168.99.2/32
 dps_interfaces:
 - name: Dps1
   description: DPS Interface
   mtu: 9214
-  ip_address: 192.168.99.2/32
+  ip_address: 192.168.130.1/32
   flow_tracker:
     hardware: FLOW-TRACKER
 vxlan_interface:
   Vxlan1:
-    description: arista-pf2-ch-test_VTEP
+    description: Site-Tier1-130-INET-SDWAN_VTEP
     vxlan:
       udp_port: 4789
       source_interface: Dps1
@@ -385,72 +385,34 @@ metadata:
   cv_tags:
     device_tags:
     - name: Role
-      value: pathfinder
-    - name: PathfinderSet
-      value: PATHFINDERS
+      value: edge
+    - name: Region
+      value: Global
+    - name: Zone
+      value: Global-ZONE
+    - name: Site
+      value: Site-Tier1
     interface_tags:
-    - interface: Ethernet1
+    - interface: Ethernet1/1
       tags:
       - name: Type
         value: wan
       - name: Carrier
         value: internet
   cv_pathfinder:
-    role: pathfinder
+    role: edge
     ssl_profile: STUN-DTLS
-    vtep_ip: 192.168.99.2
+    vtep_ip: 192.168.130.1
+    region: Global
+    zone: Global-ZONE
+    site: Site-Tier1
     interfaces:
-    - name: Ethernet1
+    - name: Ethernet1/1
       carrier: internet
       pathgroup: internet
-      public_ip: 142.215.104.115
-    pathgroups:
-    - name: internet
-      carriers:
-      - name: internet
-    regions:
-    - name: Global
-      id: 1
-      zones:
-      - name: Global-ZONE
-        id: 1
-        sites:
-        - name: Site-EQX-1
-          id: 108
-        - name: Site-EQX-2
-          id: 109
-        - name: Site-DRF
-          id: 111
-        - name: Site-Tier1
-          id: 130
-    vrfs:
-    - name: default
-      vni: 101
-      avts:
-      - id: 254
-        name: DEFAULT-AVT-POLICY-CONTROL-PLANE
-        pathgroups:
-        - name: internet
-          preference: preferred
-        - name: LAN_HA
-          preference: preferred
-      - id: 1
-        name: DEFAULT-AVT-POLICY-DEFAULT
-        pathgroups:
-        - name: internet
-          preference: preferred
-        - name: LAN_HA
-          preference: preferred
-    - name: STATION
-      vni: 201
-      avts:
-      - id: 1
-        name: STATION-DEFAULT-DEFAULT
-        pathgroups:
-        - name: internet
-          preference: preferred
-        - name: LAN_HA
-          preference: preferred
+    pathfinders:
+    - vtep_ip: 192.168.99.1
+    - vtep_ip: 192.168.99.2
 switchport_default:
   mode: routed
 system:
