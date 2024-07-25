@@ -1,0 +1,29 @@
+---
+# Edge nodes configuration
+
+# type: wan_edge
+type: wan_router
+
+wan_router:  # dynamic_key: node_type
+  defaults:
+    id: 1
+    loopback_ipv4_offset: -1
+    cv_pathfinder_region: Global
+    filter:
+      always_include_vrfs_in_tenants: [hawaiianairlines]
+  nodes:
+    - name: Site-DRF-INET-SDWAN
+      cv_pathfinder_site: Site-DRF
+      mgmt_ip: 10.90.245.94/24
+      loopback_ipv4_pool: 10.254.110.1/32
+      vtep_loopback_ipv4_pool: 192.168.110.1/32
+      l3_interfaces:
+        - name: Ethernet1/2
+          ip_address: 76.81.100.242/29
+          wan_carrier: internet
+          peer_ip: 76.81.100.241
+          static_routes:
+            - prefix: 0.0.0.0/0
+          cv_pathfinder_internet_exit: 
+            policies:
+              - name: STATION-avt-defaultIEPolicy

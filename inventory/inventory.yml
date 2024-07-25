@@ -1,0 +1,40 @@
+---
+all:
+  children:
+    WAN:
+      vars:
+        ansible_connection: ansible.netcommon.httpapi
+        ansible_network_os: arista.eos.eos
+        ansible_user: cvpadmin
+        ansible_password: cvp123!
+        ansible_become: true
+        ansible_become_method: enable
+        ansible_httpapi_use_ssl: true
+        ansible_httpapi_validate_certs: false
+      children:
+        REGION1:
+          children:
+            REGION1_HUBS:
+              children:
+                REGION1_HUB_SEA:
+                  hosts:
+                    arista-r1-ch-test:
+                      ansible_host: 142.215.198.172
+                REGION1_HUB_ASH:
+                  hosts:
+                    arista-r2-ch-test:
+                      ansible_host: 142.215.58.13
+            REGION1_SITE_DRF:
+              hosts:
+                Site-DRF-INET-SDWAN:
+                  ansible_host: 76.81.100.242
+            REGION1_SITE_TIER1:
+              hosts:
+                Site-Tier1-130-INET-SDWAN:
+                  ansible_host: 65.76.116.106
+        PATHFINDER_NODES:
+          hosts:
+            arista-pf1-ch-test:
+              ansible_host: 142.215.104.113
+            arista-pf2-ch-test:
+              ansible_host: 142.215.104.115

@@ -1,0 +1,446 @@
+hostname: arista-r1-ch-test
+is_deployed: true
+router_bgp:
+  as: '65199'
+  router_id: 10.254.108.1
+  bgp:
+    default:
+      ipv4_unicast: false
+  maximum_paths:
+    paths: 16
+  redistribute_routes:
+  - source_protocol: connected
+    route_map: RM-CONN-2-BGP
+  peer_groups:
+  - name: WAN-OVERLAY-PEERS
+    type: wan
+    update_source: Dps1
+    bfd: true
+    send_community: all
+    maximum_routes: 0
+    remote_as: '65199'
+    ttl_maximum_hops: 1
+    bfd_timers:
+      interval: 1000
+      min_rx: 1000
+      multiplier: 10
+  address_family_evpn:
+    peer_groups:
+    - name: WAN-OVERLAY-PEERS
+      activate: true
+      route_map_in: RM-EVPN-SOO-IN
+      route_map_out: RM-EVPN-SOO-OUT
+  address_family_ipv4:
+    peer_groups:
+    - name: WAN-OVERLAY-PEERS
+      activate: false
+  address_family_ipv4_sr_te:
+    peer_groups:
+    - name: WAN-OVERLAY-PEERS
+      activate: true
+  address_family_link_state:
+    peer_groups:
+    - name: WAN-OVERLAY-PEERS
+      activate: true
+    path_selection:
+      roles:
+        producer: true
+  address_family_path_selection:
+    peer_groups:
+    - name: WAN-OVERLAY-PEERS
+      activate: true
+    bgp:
+      additional_paths:
+        receive: true
+        send:
+          any: true
+  neighbors:
+  - ip_address: 192.168.99.1
+    peer_group: WAN-OVERLAY-PEERS
+    peer: arista-pf1-ch-test
+    description: arista-pf1-ch-test
+  - ip_address: 192.168.99.2
+    peer_group: WAN-OVERLAY-PEERS
+    peer: arista-pf2-ch-test
+    description: arista-pf2-ch-test
+  vrfs:
+  - name: default
+    rd: 10.254.108.1:101
+    route_targets:
+      import:
+      - address_family: evpn
+        route_targets:
+        - 65199:101
+      export:
+      - address_family: evpn
+        route_targets:
+        - 65199:101
+        - route-map RM-EVPN-EXPORT-VRF-DEFAULT
+  - name: STATION
+    router_id: 10.254.108.1
+    rd: 10.254.108.1:102
+    route_targets:
+      import:
+      - address_family: evpn
+        route_targets:
+        - 65199:102
+      export:
+      - address_family: evpn
+        route_targets:
+        - 65199:102
+    redistribute_routes:
+    - source_protocol: connected
+static_routes:
+- vrf: MGMT
+  destination_address_prefix: 0.0.0.0/0
+  gateway: 10.90.245.1
+- destination_address_prefix: 0.0.0.0/0
+  gateway: 142.215.198.169
+service_routing_protocols_model: multi-agent
+ip_routing: true
+daemon_terminattr:
+  cvaddrs:
+  - apiserver.cv-staging.corp.arista.io:443
+  cvauth:
+    method: token-secure
+    token_file: /tmp/cv-onboarding-token
+  cvvrf: MGMT
+  smashexcludes: ale,flexCounter,hardware,kni,pulse,strata
+  ingestexclude: /Sysdb/cell/1/agent,/Sysdb/cell/2/agent
+  disable_aaa: true
+transceiver_qsfp_default_mode_4x10: false
+spanning_tree:
+  mode: none
+local_users:
+- name: admin
+  role: network-admin
+  privilege: 15
+  sha512_password: $6$JrS3d2nAMOGnIlAh$h3J1UHELqo4rO4X.11QwVWltyNzvT4EV/7ufhuJ.yonFGjRWm8YpCbLN3IldeWZqs8YIOoKSrdx2f6Dsgg1OF0
+- name: neteng1
+  role: network-admin
+  privilege: 15
+  sha512_password: $1$X3t8pt2v$FWMtZOAEnRyW6B2VRxTQW/
+vrfs:
+- name: MGMT
+  ip_routing: false
+- name: STATION
+  tenant: hawaiianairlines
+  ip_routing: true
+management_interfaces:
+- name: Management1
+  description: oob_management
+  shutdown: false
+  vrf: MGMT
+  ip_address: 10.90.245.93/24
+  gateway: 10.90.245.1
+  type: oob
+management_api_http:
+  enable_vrfs:
+  - name: MGMT
+  enable_https: true
+ntp:
+  servers:
+  - name: time.google.com
+    vrf: default
+    preferred: true
+ethernet_interfaces:
+- name: Ethernet1
+  peer_type: l3_interface
+  ip_address: dhcp
+  shutdown: false
+  type: routed
+  description: internet
+  dhcp_client_accept_default_route: true
+loopback_interfaces:
+- name: Loopback0
+  description: Router_ID
+  shutdown: false
+  ip_address: 10.254.108.1/32
+prefix_lists:
+- name: PL-LOOPBACKS-EVPN-OVERLAY
+  sequence_numbers:
+  - sequence: 10
+    action: permit 10.254.108.1/32 eq 32
+route_maps:
+- name: RM-CONN-2-BGP
+  sequence_numbers:
+  - sequence: 10
+    type: permit
+    match:
+    - ip address prefix-list PL-LOOPBACKS-EVPN-OVERLAY
+    set:
+    - extcommunity soo 10.254.108.1:108 additive
+- name: RM-EVPN-SOO-IN
+  sequence_numbers:
+  - sequence: 10
+    type: deny
+    match:
+    - extcommunity ECL-EVPN-SOO
+  - sequence: 20
+    type: permit
+- name: RM-EVPN-SOO-OUT
+  sequence_numbers:
+  - sequence: 10
+    type: permit
+    set:
+    - extcommunity soo 10.254.108.1:108 additive
+- name: RM-EVPN-EXPORT-VRF-DEFAULT
+  sequence_numbers:
+  - sequence: 10
+    type: permit
+    match:
+    - extcommunity ECL-EVPN-SOO
+agents:
+- name: KernelFib
+  environment_variables:
+  - name: KERNELFIB_PROGRAM_ALL_ECMP
+    value: '''true'''
+ip_extcommunity_lists:
+- name: ECL-EVPN-SOO
+  entries:
+  - type: permit
+    extcommunities: soo 10.254.108.1:108
+ip_security:
+  ike_policies:
+  - name: CP-IKE-POLICY
+    local_id: 192.168.108.1
+  sa_policies:
+  - name: DP-SA-POLICY
+    esp:
+      encryption: aes256gcm128
+    pfs_dh_group: 14
+  - name: CP-SA-POLICY
+    esp:
+      encryption: aes256gcm128
+    pfs_dh_group: 14
+  profiles:
+  - name: DP-PROFILE
+    sa_policy: DP-SA-POLICY
+    connection: start
+    shared_key: 08294D5908100C161C0A0516
+    dpd:
+      interval: 10
+      time: 50
+      action: clear
+    mode: transport
+  - name: CP-PROFILE
+    ike_policy: CP-IKE-POLICY
+    sa_policy: CP-SA-POLICY
+    connection: start
+    shared_key: 050307182045470817041E00
+    dpd:
+      interval: 10
+      time: 50
+      action: clear
+    mode: transport
+  key_controller:
+    profile: DP-PROFILE
+management_security:
+  ssl_profiles:
+  - name: STUN-DTLS
+    certificate:
+      file: STUN-DTLS.crt
+      key: STUN-DTLS.key
+    trust_certificate:
+      certificates:
+      - aristaDeviceCertProvisionerDefaultRootCA.crt
+    tls_versions: '1.2'
+router_adaptive_virtual_topology:
+  topology_role: edge
+  region:
+    name: Global
+    id: 1
+  zone:
+    name: Global-ZONE
+    id: 1
+  site:
+    name: Site-EQX-SEA
+    id: 108
+  profiles:
+  - name: DEFAULT-AVT-POLICY-CONTROL-PLANE
+    load_balance_policy: LB-DEFAULT-AVT-POLICY-CONTROL-PLANE
+  - name: DEFAULT-AVT-POLICY-DEFAULT
+    load_balance_policy: LB-DEFAULT-AVT-POLICY-DEFAULT
+  - name: StationAVTPolicy-TeamsProfile
+    load_balance_policy: LB-StationAVTPolicy-TeamsProfile
+  - name: StationAVTPolicy-DEFAULT
+    load_balance_policy: LB-StationAVTPolicy-DEFAULT
+  vrfs:
+  - name: default
+    policy: DEFAULT-AVT-POLICY-WITH-CP
+    profiles:
+    - name: DEFAULT-AVT-POLICY-CONTROL-PLANE
+      id: 254
+    - name: DEFAULT-AVT-POLICY-DEFAULT
+      id: 1
+  - name: STATION
+    policy: StationAVTPolicy
+    profiles:
+    - name: StationAVTPolicy-TeamsProfile
+      id: 3
+    - name: StationAVTPolicy-DEFAULT
+      id: 1
+  policies:
+  - name: DEFAULT-AVT-POLICY-WITH-CP
+    matches:
+    - application_profile: APP-PROFILE-CONTROL-PLANE
+      avt_profile: DEFAULT-AVT-POLICY-CONTROL-PLANE
+    - application_profile: default
+      avt_profile: DEFAULT-AVT-POLICY-DEFAULT
+  - name: StationAVTPolicy
+    matches:
+    - application_profile: TeamsProfile
+      avt_profile: StationAVTPolicy-TeamsProfile
+    - application_profile: default
+      avt_profile: StationAVTPolicy-DEFAULT
+router_bfd:
+  multihop:
+    interval: 300
+    min_rx: 300
+    multiplier: 3
+router_path_selection:
+  tcp_mss_ceiling:
+    ipv4_segment_size: auto
+  path_groups:
+  - name: internet
+    id: 101
+    local_interfaces:
+    - name: Ethernet1
+      stun:
+        server_profiles:
+        - internet-arista-pf1-ch-test-Ethernet1
+        - internet-arista-pf2-ch-test-Ethernet1
+    dynamic_peers:
+      enabled: true
+    static_peers:
+    - router_ip: 192.168.99.1
+      name: arista-pf1-ch-test
+      ipv4_addresses:
+      - 142.215.104.113
+    - router_ip: 192.168.99.2
+      name: arista-pf2-ch-test
+      ipv4_addresses:
+      - 142.215.104.115
+    ipsec_profile: CP-PROFILE
+  load_balance_policies:
+  - name: LB-DEFAULT-AVT-POLICY-CONTROL-PLANE
+    path_groups:
+    - name: internet
+  - name: LB-DEFAULT-AVT-POLICY-DEFAULT
+    path_groups:
+    - name: internet
+  - name: LB-StationAVTPolicy-TeamsProfile
+    path_groups:
+    - name: internet
+  - name: LB-StationAVTPolicy-DEFAULT
+    path_groups:
+    - name: internet
+router_traffic_engineering:
+  enabled: true
+stun:
+  client:
+    server_profiles:
+    - name: internet-arista-pf1-ch-test-Ethernet1
+      ip_address: 142.215.104.113
+      ssl_profile: STUN-DTLS
+    - name: internet-arista-pf2-ch-test-Ethernet1
+      ip_address: 142.215.104.115
+      ssl_profile: STUN-DTLS
+application_traffic_recognition:
+  application_profiles:
+  - name: TeamsProfile
+    applications:
+    - name: microsoft
+    - name: ms_teams
+    - name: office365
+  - name: APP-PROFILE-CONTROL-PLANE
+    applications:
+    - name: APP-CONTROL-PLANE
+  applications:
+    ipv4_applications:
+    - name: APP-CONTROL-PLANE
+      dest_prefix_set_name: PFX-PATHFINDERS
+  field_sets:
+    ipv4_prefixes:
+    - name: PFX-PATHFINDERS
+      prefix_values:
+      - 192.168.99.1/32
+      - 192.168.99.2/32
+dps_interfaces:
+- name: Dps1
+  description: DPS Interface
+  mtu: 9214
+  ip_address: 192.168.108.1/32
+  flow_tracker:
+    hardware: FLOW-TRACKER
+vxlan_interface:
+  Vxlan1:
+    description: arista-r1-ch-test_VTEP
+    vxlan:
+      udp_port: 4789
+      source_interface: Dps1
+      vrfs:
+      - name: default
+        vni: 101
+      - name: STATION
+        vni: 201
+flow_tracking:
+  hardware:
+    trackers:
+    - name: FLOW-TRACKER
+      record_export:
+        on_inactive_timeout: 70000
+        on_interval: 300000
+      exporters:
+      - name: CV-TELEMETRY
+        collector:
+          host: 127.0.0.1
+        local_interface: Loopback0
+        template_interval: 3600000
+    shutdown: false
+metadata:
+  cv_tags:
+    device_tags:
+    - name: Role
+      value: edge
+    - name: Region
+      value: Global
+    - name: Zone
+      value: Global-ZONE
+    - name: Site
+      value: Site-EQX-SEA
+    interface_tags:
+    - interface: Ethernet1
+      tags:
+      - name: Type
+        value: wan
+      - name: Carrier
+        value: internet
+  cv_pathfinder:
+    role: edge
+    ssl_profile: STUN-DTLS
+    vtep_ip: 192.168.108.1
+    region: Global
+    zone: Global-ZONE
+    site: Site-EQX-SEA
+    interfaces:
+    - name: Ethernet1
+      carrier: internet
+      pathgroup: internet
+    pathfinders:
+    - vtep_ip: 192.168.99.1
+    - vtep_ip: 192.168.99.2
+switchport_default:
+  mode: routed
+system:
+  l1:
+    unsupported_speed_action: error
+    unsupported_error_correction_action: error
+ip_name_servers:
+- ip_address: 8.8.4.4
+  vrf: default
+- ip_address: 8.8.8.8
+  vrf: default
+management_ssh:
+  client_alive:
+    interval: 180

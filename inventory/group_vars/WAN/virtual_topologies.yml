@@ -1,0 +1,84 @@
+---
+wan_virtual_topologies:
+# vrf VNI definition for interface VXLAN
+  vrfs:
+    - name: default
+      wan_vni: 101
+      policy: DEFAULT-AVT-POLICY
+    - name: STATION
+      wan_vni: 201
+      policy: StationAVTPolicy
+  policies:
+    - name: DEFAULT-AVT-POLICY
+      default_virtual_topology:
+        path_groups:
+          - names: [internet]
+            preference: preferred
+      # application_virtual_topologies:
+      #   - application_profile: PathfinderControlPlaneProfile
+      #     id: 2
+      #     path_groups:
+      #       - names:
+      #           - internet
+    - name: StationAVTPolicy
+      default_virtual_topology:
+        path_groups:
+          - names: [internet]
+            # preference: preferred
+      application_virtual_topologies:
+        - application_profile: TeamsProfile
+          id: 3
+          path_groups:
+            - names:
+                - internet
+          internet_exit:
+            policy: STATION-avt-defaultIEPolicy
+
+
+# Application traffic recognition configuration.
+application_classification:
+  field_sets:
+    ipv4_prefixes:
+      - name: Pathfinder-CP-AppDstPrefixes
+        prefix_values:
+          - 192.168.99.1/32
+          - 192.168.99.2/32
+  applications:
+    ipv4_applications:
+      - name: Pathfinder-CP-App
+        dest_prefix_set_name: Pathfinder-CP-AppDstPrefixes
+  application_profiles:
+    - name: PathfinderControlPlaneProfile
+      applications:
+        - name: Pathfinder-CP-App
+    - name: TeamsProfile
+      applications:
+        - name: microsoft
+        - name: ms_teams
+        - name: office365
+
+
+# List of internet-exit policies used for the WAN configuration.
+cv_pathfinder_internet_exit_policies:
+  - name: STATION-avt-defaultIEPolicy
+    type: "direct"
+
+# application_classification:
+#   field_sets:
+#     l4_ports: 
+#     - name: RTP_PORT
+#       port_values: [1-65000]
+#   # Group of applications.
+#   application_profiles:
+#     - name: VOICE
+#       applications:
+#         - name: voice-udpport
+#          # service: "audio-video"
+#       # application_transports:
+#       #   - "rtp"
+#   applications:
+#     ipv4_applications:
+#       - name: voice-udpport
+#         udp_dest_port_set_name: RTP_PORT
+#         protocols: 
+#           - "udp"
