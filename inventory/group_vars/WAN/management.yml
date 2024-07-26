@@ -25,6 +25,11 @@ local_users:
     privilege: 15
     sha512_password: "$1$X3t8pt2v$FWMtZOAEnRyW6B2VRxTQW/"
 
+  - name: demo
+    role: network-admin
+    privilege: 15
+    sha512_password: "$6$UisBHbh7j0nDNbP9$3PzI4Cqr9NK.j.8hJV5enMrMuKDm9UEkugTDY0L0ASY4uefBHeeKA.o9WijOvXzYYBiXrcx6uk6oCsurDLYvR1"
+
 
 cvp_instance_ips: ["apiserver.cv-staging.corp.arista.io"]
 

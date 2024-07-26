@@ -2,13 +2,14 @@
 # WAN Transit Nodes
 
 # type: wan_transit
-type: wan_router
+# type: wan_router
 
 wan_router:  # dynamic_key: node_type
   defaults:
     id: 1
     loopback_ipv4_offset: -1
     cv_pathfinder_region: Global
+    cv_pathfinder_transit_mode: region
     filter:
       always_include_vrfs_in_tenants: [hawaiianairlines]
   nodes:

@@ -210,6 +210,7 @@ management api http-commands
 | User | Privilege | Role | Disabled | Shell |
 | ---- | --------- | ---- | -------- | ----- |
 | admin | 15 | network-admin | False | - |
+| demo | 15 | network-admin | False | - |
 | neteng1 | 15 | network-admin | False | - |
 
 #### Local Users Device Configuration
@@ -217,6 +218,7 @@ management api http-commands
 ```eos
 !
 username admin privilege 15 role network-admin secret sha512 <removed>
+username demo privilege 15 role network-admin secret sha512 <removed>
 username neteng1 privilege 15 role network-admin secret sha512 <removed>
 ```
 

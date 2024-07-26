@@ -208,6 +208,7 @@ management api http-commands
 | User | Privilege | Role | Disabled | Shell |
 | ---- | --------- | ---- | -------- | ----- |
 | admin | 15 | network-admin | False | - |
+| demo | 15 | network-admin | False | - |
 | neteng1 | 15 | network-admin | False | - |
 
 #### Local Users Device Configuration
@@ -215,6 +216,7 @@ management api http-commands
 ```eos
 !
 username admin privilege 15 role network-admin secret sha512 <removed>
+username demo privilege 15 role network-admin secret sha512 <removed>
 username neteng1 privilege 15 role network-admin secret sha512 <removed>
 ```
 
@@ -569,7 +571,7 @@ ip route 0.0.0.0/0 142.215.58.12
 
 #### Router Adaptive Virtual Topology Summary
 
-Topology role: edge
+Topology role: transit region
 
 | Hierarchy | Name | ID |
 | --------- | ---- | -- |
@@ -631,7 +633,7 @@ Topology role: edge
 ```eos
 !
 router adaptive-virtual-topology
-   topology role edge
+   topology role transit region
    region Global id 1
    zone Global-ZONE id 1
    site Site-EQX-ASH id 109

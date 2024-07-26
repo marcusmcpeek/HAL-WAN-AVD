@@ -17,6 +17,9 @@
   - [Management Security SSL Profiles](#management-security-ssl-profiles)
   - [SSL profile STUN-DTLS Certificates Summary](#ssl-profile-stun-dtls-certificates-summary)
   - [Management Security Device Configuration](#management-security-device-configuration)
+- [DHCP Server](#dhcp-server)
+  - [DHCP Servers Summary](#dhcp-servers-summary)
+  - [DHCP Server Configuration](#dhcp-server-configuration)
 - [Monitoring](#monitoring)
   - [TerminAttr Daemon](#terminattr-daemon)
   - [Flow Tracking](#flow-tracking)
@@ -220,6 +223,7 @@ management api http-commands
 | User | Privilege | Role | Disabled | Shell |
 | ---- | --------- | ---- | -------- | ----- |
 | admin | 15 | network-admin | False | - |
+| demo | 15 | network-admin | False | - |
 | neteng1 | 15 | network-admin | False | - |
 
 #### Local Users Device Configuration
@@ -227,6 +231,7 @@ management api http-commands
 ```eos
 !
 username admin privilege 15 role network-admin secret sha512 <removed>
+username demo privilege 15 role network-admin secret sha512 <removed>
 username neteng1 privilege 15 role network-admin secret sha512 <removed>
 ```
 
@@ -275,6 +280,37 @@ management security
       tls versions 1.2
       trust certificate aristaDeviceCertProvisionerDefaultRootCA.crt
       certificate STUN-DTLS.crt key STUN-DTLS.key
+```
+
+## DHCP Server
+
+### DHCP Servers Summary
+
+| DHCP Server Enabled | VRF | IPv4 DNS Domain | IPv4 DNS Servers | IPv4 Bootfile | IPv6 DNS Domain | IPv6 DNS Servers | IPv6 Bootfile |
+| ------------------- | --- | --------------- | ---------------- | ------------- | --------------- | ---------------- | ------------- |
+| True | STATION | - | - | - | - | - | - |
+
+#### VRF STATION DHCP Server
+
+##### Subnets
+
+| Subnet | Name | DNS Servers | Default Gateway | Lease Time | Ranges |
+| ------ | ---- | ----------- | --------------- | ---------- | ------ |
+| 10.100.110.0/24 | Site-DRF-INET-SDWAN-STATION-LAN | 8.8.8.8, 8.8.4.4 | 10.100.110.1 | 1 days, 0 hours, 0 minutes | 10.100.110.10-10.100.110.235 |
+
+### DHCP Server Configuration
+
+```eos
+!
+dhcp server vrf STATION
+   !
+   subnet 10.100.110.0/24
+      !
+      range 10.100.110.10 10.100.110.235
+      name Site-DRF-INET-SDWAN-STATION-LAN
+      dns server 8.8.8.8 8.8.4.4
+      lease time 1 days 0 hours 0 minutes
+      default-gateway 10.100.110.1
 ```
 
 ## Monitoring
@@ -490,7 +526,7 @@ interface Dps1
 
 | Interface | Description | Type | Channel Group | IP Address | VRF |  MTU | Shutdown | ACL In | ACL Out |
 | --------- | ----------- | -----| ------------- | ---------- | ----| ---- | -------- | ------ | ------- |
-| Ethernet1/2 | internet | routed | - | 76.81.100.242/29 | default | - | False | - | - |
+| Ethernet1/2 | internet | routed | - | 76.81.100.242/29 | default | - | False | DRF-inet-inbound | DRF-inet-outbound |
 
 ##### IP NAT: Interfaces configured via profile
 
@@ -507,6 +543,8 @@ interface Ethernet1/2
    no shutdown
    no switchport
    ip address 76.81.100.242/29
+   ip access-group DRF-inet-inbound in
+   ip access-group DRF-inet-outbound out
    ip nat service-profile IE-DIRECT-NAT
 ```
 
@@ -1012,6 +1050,35 @@ ip extcommunity-list ECL-EVPN-SOO permit soo 10.254.110.1:111
 #### IP Access-lists Device Configuration
 
 ```eos
+!
+ip access-list DRF-inet-inbound
+   10 permit ip 74.202.112.0/24 any
+   20 permit ip host 142.215.104.113 any
+   30 permit ip host 142.215.104.115 any
+   40 permit ip host 142.215.198.172 any
+   50 permit ip host 142.215.58.13 any
+   60 permit udp any eq ntp isakmp 3478 non500-isakmp any
+   70 permit ip 162.210.128.0/22 any
+   80 permit ip host 34.67.65.165 any
+   90 permit ip host 35.192.157.156 any
+   100 permit ip host 34.136.239.116 any
+   110 permit ip host 34.30.62.197 any
+   120 permit ip host 8.8.8.8 any
+   130 permit ip host 8.8.4.4 any
+   140 permit udp 13.107.64.0/18 any eq 3478 3479 3480 3481
+   150 permit udp 52.112.0.0/14 any eq 3478 3479 3480 3481
+   160 permit udp 52.122.0.0/15 any eq 3478 3479 3480 3481
+   170 permit icmp 13.107.64.0/18 any
+   180 permit icmp 52.112.0.0/14 any
+   190 permit icmp 52.122.0.0/15 any
+   200 permit tcp host 52.238.119.141 any eq www https
+   210 permit tcp host 52.244.160.207 any eq www https
+   220 permit tcp 13.107.64.0/18 any eq www https
+   230 permit tcp 52.112.0.0/14 any eq www https
+   240 permit tcp 52.122.0.0/15 any eq www https
+!
+ip access-list DRF-inet-outbound
+   10 permit ip any any
 !
 ip access-list ALLOW-ALL
    10 permit ip any any

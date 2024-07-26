@@ -14,12 +14,6 @@ wan_virtual_topologies:
         path_groups:
           - names: [internet]
             preference: preferred
-      # application_virtual_topologies:
-      #   - application_profile: PathfinderControlPlaneProfile
-      #     id: 2
-      #     path_groups:
-      #       - names:
-      #           - internet
     - name: StationAVTPolicy
       default_virtual_topology:
         path_groups:
@@ -62,23 +56,3 @@ application_classification:
 cv_pathfinder_internet_exit_policies:
   - name: STATION-avt-defaultIEPolicy
     type: "direct"
-
-# application_classification:
-#   field_sets:
-#     l4_ports: 
-#     - name: RTP_PORT
-#       port_values: [1-65000]
-#   # Group of applications.
-#   application_profiles:
-#     - name: VOICE
-#       applications:
-#         - name: voice-udpport
-#          # service: "audio-video"
-#       # application_transports:
-#       #   - "rtp"
-#   applications:
-#     ipv4_applications:
-#       - name: voice-udpport
-#         udp_dest_port_set_name: RTP_PORT
-#         protocols: 
-#           - "udp"

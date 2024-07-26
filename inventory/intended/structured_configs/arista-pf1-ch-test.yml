@@ -159,6 +159,10 @@ local_users:
   role: network-admin
   privilege: 15
   sha512_password: $6$JrS3d2nAMOGnIlAh$h3J1UHELqo4rO4X.11QwVWltyNzvT4EV/7ufhuJ.yonFGjRWm8YpCbLN3IldeWZqs8YIOoKSrdx2f6Dsgg1OF0
+- name: demo
+  role: network-admin
+  privilege: 15
+  sha512_password: $6$UisBHbh7j0nDNbP9$3PzI4Cqr9NK.j.8hJV5enMrMuKDm9UEkugTDY0L0ASY4uefBHeeKA.o9WijOvXzYYBiXrcx6uk6oCsurDLYvR1
 - name: neteng1
   role: network-admin
   privilege: 15

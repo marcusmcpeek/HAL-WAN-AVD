@@ -2,7 +2,7 @@
 # Edge nodes configuration
 
 # type: wan_edge
-type: wan_router
+# type: wan_router
 
 wan_router:  # dynamic_key: node_type
   defaults:
@@ -21,6 +21,121 @@ wan_router:  # dynamic_key: node_type
         - name: Ethernet1/1
           ip_address: 65.76.116.106/30
           wan_carrier: internet
+          ipv4_acl_in: TIER1-inet-inbound 
+          ipv4_acl_out: TIER1-inet-outbound
           peer_ip: 65.76.116.105
           static_routes:
             - prefix: 0.0.0.0/0
+          cv_pathfinder_internet_exit: 
+            policies:
+              - name: STATION-avt-defaultIEPolicy
+      structured_config:
+        dhcp_servers:
+          - disabled: false
+            vrf: STATION
+            subnets:
+              - subnet: 10.100.130.0/24
+                name: Site-Tier1-130-INET-SDWAN-STATION-LAN
+                default_gateway: 10.100.130.1
+                dns_servers: [ 8.8.8.8, 8.8.4.4 ]
+                ranges:
+                  - start: 10.100.130.10
+                    end: 10.100.130.235
+                lease_time:
+                  days: 1
+                  hours: 0
+                  minutes: 0
+
+ipv4_acls:
+  - name: TIER1-inet-inbound
+    entries: # required
+      - source: 74.202.112.0/24
+        destination: any
+        sequence: 10
+        action: "permit"
+        protocol: ip
+      - source: 142.215.104.113
+        destination: any
+        sequence: 20
+        action: "permit"
+        protocol: ip
+      - source: 142.215.104.115
+        destination: any
+        sequence: 30
+        action: "permit"
+        protocol: ip
+      - source: 142.215.198.172
+        destination: any
+        sequence: 40
+        action: "permit"
+        protocol: ip
+      - source: 142.215.58.13
+        destination: any
+        sequence: 50
+        action: "permit"
+        protocol: ip
+      - source: any
+        destination: any
+        sequence: 60
+        action: "permit"
+        protocol: udp
+        source_ports_match: "eq"
+        source_ports:
+          - "ntp" 
+          - "isakmp"
+          - "3478"
+          - "non500-isakmp"
+      - source: 162.210.128.0/22
+        destination: any
+        sequence: 70
+        action: "permit"
+        protocol: ip
+      - source: 34.67.65.165
+        destination: any
+        sequence: 80
+        action: "permit"
+        protocol: ip
+      - source: 35.192.157.156
+        destination: any
+        sequence: 90
+        action: "permit"
+        protocol: ip
+      - source: 34.136.239.116
+        destination: any
+        sequence: 100
+        action: "permit"
+        protocol: ip
+      - source: 34.30.62.197
+        destination: any
+        sequence: 110
+        action: "permit"
+        protocol: ip
+      - source: 8.8.8.8
+        destination: any
+        sequence: 120
+        action: "permit"
+        protocol: ip
+      - source: 8.8.4.4
+        destination: any
+        sequence: 130
+        action: "permit"
+        protocol: ip
+      - source: 76.81.100.240/29
+        destination: any
+        sequence: 250
+        action: "permit"
+        protocol: ip
+      # - sequence: 260
+      #   action: permit response traffic nat
+      # - source: any
+      #   destination: any
+      #   sequence: 260
+      #   action: "permit"
+      #   protocol: ip
+  - name: TIER1-inet-outbound
+    entries: # required
+      - source: any
+        destination: any
+        sequence: 10
+        action: "permit"
+        protocol: ip

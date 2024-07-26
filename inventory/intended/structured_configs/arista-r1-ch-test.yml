@@ -116,6 +116,10 @@ local_users:
   role: network-admin
   privilege: 15
   sha512_password: $6$JrS3d2nAMOGnIlAh$h3J1UHELqo4rO4X.11QwVWltyNzvT4EV/7ufhuJ.yonFGjRWm8YpCbLN3IldeWZqs8YIOoKSrdx2f6Dsgg1OF0
+- name: demo
+  role: network-admin
+  privilege: 15
+  sha512_password: $6$UisBHbh7j0nDNbP9$3PzI4Cqr9NK.j.8hJV5enMrMuKDm9UEkugTDY0L0ASY4uefBHeeKA.o9WijOvXzYYBiXrcx6uk6oCsurDLYvR1
 - name: neteng1
   role: network-admin
   privilege: 15
@@ -246,7 +250,7 @@ management_security:
       - aristaDeviceCertProvisionerDefaultRootCA.crt
     tls_versions: '1.2'
 router_adaptive_virtual_topology:
-  topology_role: edge
+  topology_role: transit region
   region:
     name: Global
     id: 1
@@ -402,7 +406,7 @@ metadata:
   cv_tags:
     device_tags:
     - name: Role
-      value: edge
+      value: transit region
     - name: Region
       value: Global
     - name: Zone
@@ -417,7 +421,7 @@ metadata:
       - name: Carrier
         value: internet
   cv_pathfinder:
-    role: edge
+    role: transit region
     ssl_profile: STUN-DTLS
     vtep_ip: 192.168.108.1
     region: Global

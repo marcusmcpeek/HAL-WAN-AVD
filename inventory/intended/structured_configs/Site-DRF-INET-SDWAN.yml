@@ -116,6 +116,10 @@ local_users:
   role: network-admin
   privilege: 15
   sha512_password: $6$JrS3d2nAMOGnIlAh$h3J1UHELqo4rO4X.11QwVWltyNzvT4EV/7ufhuJ.yonFGjRWm8YpCbLN3IldeWZqs8YIOoKSrdx2f6Dsgg1OF0
+- name: demo
+  role: network-admin
+  privilege: 15
+  sha512_password: $6$UisBHbh7j0nDNbP9$3PzI4Cqr9NK.j.8hJV5enMrMuKDm9UEkugTDY0L0ASY4uefBHeeKA.o9WijOvXzYYBiXrcx6uk6oCsurDLYvR1
 - name: neteng1
   role: network-admin
   privilege: 15
@@ -150,6 +154,8 @@ ethernet_interfaces:
   shutdown: false
   type: routed
   description: internet
+  access_group_in: DRF-inet-inbound
+  access_group_out: DRF-inet-outbound
   ip_nat:
     service_profile: IE-DIRECT-NAT
 loopback_interfaces:
@@ -196,6 +202,187 @@ agents:
   environment_variables:
   - name: KERNELFIB_PROGRAM_ALL_ECMP
     value: '''true'''
+ip_access_lists:
+- name: DRF-inet-inbound
+  entries:
+  - source: 74.202.112.0/24
+    destination: any
+    sequence: 10
+    action: permit
+    protocol: ip
+  - source: 142.215.104.113
+    destination: any
+    sequence: 20
+    action: permit
+    protocol: ip
+  - source: 142.215.104.115
+    destination: any
+    sequence: 30
+    action: permit
+    protocol: ip
+  - source: 142.215.198.172
+    destination: any
+    sequence: 40
+    action: permit
+    protocol: ip
+  - source: 142.215.58.13
+    destination: any
+    sequence: 50
+    action: permit
+    protocol: ip
+  - source: any
+    destination: any
+    sequence: 60
+    action: permit
+    protocol: udp
+    source_ports_match: eq
+    source_ports:
+    - ntp
+    - isakmp
+    - '3478'
+    - non500-isakmp
+  - source: 162.210.128.0/22
+    destination: any
+    sequence: 70
+    action: permit
+    protocol: ip
+  - source: 34.67.65.165
+    destination: any
+    sequence: 80
+    action: permit
+    protocol: ip
+  - source: 35.192.157.156
+    destination: any
+    sequence: 90
+    action: permit
+    protocol: ip
+  - source: 34.136.239.116
+    destination: any
+    sequence: 100
+    action: permit
+    protocol: ip
+  - source: 34.30.62.197
+    destination: any
+    sequence: 110
+    action: permit
+    protocol: ip
+  - source: 8.8.8.8
+    destination: any
+    sequence: 120
+    action: permit
+    protocol: ip
+  - source: 8.8.4.4
+    destination: any
+    sequence: 130
+    action: permit
+    protocol: ip
+  - source: 13.107.64.0/18
+    destination: any
+    sequence: 140
+    action: permit
+    protocol: udp
+    destination_ports_match: eq
+    destination_ports:
+    - '3478'
+    - '3479'
+    - '3480'
+    - '3481'
+  - source: 52.112.0.0/14
+    destination: any
+    sequence: 150
+    action: permit
+    protocol: udp
+    destination_ports_match: eq
+    destination_ports:
+    - '3478'
+    - '3479'
+    - '3480'
+    - '3481'
+  - source: 52.122.0.0/15
+    destination: any
+    sequence: 160
+    action: permit
+    protocol: udp
+    destination_ports_match: eq
+    destination_ports:
+    - '3478'
+    - '3479'
+    - '3480'
+    - '3481'
+  - source: 13.107.64.0/18
+    destination: any
+    sequence: 170
+    action: permit
+    protocol: icmp
+  - source: 52.112.0.0/14
+    destination: any
+    sequence: 180
+    action: permit
+    protocol: icmp
+  - source: 52.122.0.0/15
+    destination: any
+    sequence: 190
+    action: permit
+    protocol: icmp
+  - source: 52.238.119.141
+    destination: any
+    sequence: 200
+    action: permit
+    protocol: tcp
+    destination_ports_match: eq
+    destination_ports:
+    - www
+    - https
+  - source: 52.244.160.207
+    destination: any
+    sequence: 210
+    action: permit
+    protocol: tcp
+    destination_ports_match: eq
+    destination_ports:
+    - www
+    - https
+  - source: 13.107.64.0/18
+    destination: any
+    sequence: 220
+    action: permit
+    protocol: tcp
+    destination_ports_match: eq
+    destination_ports:
+    - www
+    - https
+  - source: 52.112.0.0/14
+    destination: any
+    sequence: 230
+    action: permit
+    protocol: tcp
+    destination_ports_match: eq
+    destination_ports:
+    - www
+    - https
+  - source: 52.122.0.0/15
+    destination: any
+    sequence: 240
+    action: permit
+    protocol: tcp
+    destination_ports_match: eq
+    destination_ports:
+    - www
+    - https
+- name: DRF-inet-outbound
+  entries:
+  - source: any
+    destination: any
+    sequence: 10
+    action: permit
+    protocol: ip
+- name: ALLOW-ALL
+  entries:
+  - sequence: 10
+    action: permit
+    protocol: ip
+    source: any
+    destination: any
 ip_extcommunity_lists:
 - name: ECL-EVPN-SOO
   entries:
@@ -368,14 +555,6 @@ application_traffic_recognition:
       prefix_values:
       - 192.168.99.1/32
       - 192.168.99.2/32
-ip_access_lists:
-- name: ALLOW-ALL
-  entries:
-  - sequence: 10
-    action: permit
-    protocol: ip
-    source: any
-    destination: any
 ip_nat:
   profiles:
   - name: IE-DIRECT-NAT
@@ -477,6 +656,23 @@ flow_tracking:
         local_interface: Loopback0
         template_interval: 3600000
     shutdown: false
+dhcp_servers:
+- disabled: false
+  vrf: STATION
+  subnets:
+  - subnet: 10.100.110.0/24
+    name: Site-DRF-INET-SDWAN-STATION-LAN
+    default_gateway: 10.100.110.1
+    dns_servers:
+    - 8.8.8.8
+    - 8.8.4.4
+    ranges:
+    - start: 10.100.110.10
+      end: 10.100.110.235
+    lease_time:
+      days: 1
+      hours: 0
+      minutes: 0
 switchport_default:
   mode: routed
 system:

@@ -1,7 +1,7 @@
 ---
 # WAN Pathfinder Nodes
 
-type: wan_rr
+# type: wan_rr
 
 wan_rr: # dynamic_key: node_type
   defaults:

@@ -15,6 +15,8 @@ all:
         REGION1:
           children:
             REGION1_HUBS:
+              vars: 
+                type: wan_router
               children:
                 REGION1_HUB_SEA:
                   hosts:
@@ -25,14 +27,20 @@ all:
                     arista-r2-ch-test:
                       ansible_host: 142.215.58.13
             REGION1_SITE_DRF:
+              vars: 
+                type: wan_router
               hosts:
                 Site-DRF-INET-SDWAN:
                   ansible_host: 76.81.100.242
             REGION1_SITE_TIER1:
+              vars: 
+                type: wan_router
               hosts:
                 Site-Tier1-130-INET-SDWAN:
                   ansible_host: 65.76.116.106
         PATHFINDER_NODES:
+          vars: 
+            type: wan_rr
           hosts:
             arista-pf1-ch-test:
               ansible_host: 142.215.104.113
