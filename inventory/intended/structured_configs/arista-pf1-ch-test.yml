@@ -133,12 +133,6 @@ router_bgp:
         - 65199:102
     redistribute_routes:
     - source_protocol: connected
-static_routes:
-- vrf: MGMT
-  destination_address_prefix: 0.0.0.0/0
-  gateway: 10.90.245.1
-- destination_address_prefix: 0.0.0.0/0
-  gateway: 142.215.104.112
 service_routing_protocols_model: multi-agent
 ip_routing: true
 daemon_terminattr:
@@ -147,7 +141,7 @@ daemon_terminattr:
   cvauth:
     method: token-secure
     token_file: /tmp/cv-onboarding-token
-  cvvrf: MGMT
+  cvvrf: default
   smashexcludes: ale,flexCounter,hardware,kni,pulse,strata
   ingestexclude: /Sysdb/cell/1/agent,/Sysdb/cell/2/agent
   disable_aaa: true
@@ -168,25 +162,17 @@ local_users:
   privilege: 15
   sha512_password: $1$X3t8pt2v$FWMtZOAEnRyW6B2VRxTQW/
 vrfs:
-- name: MGMT
+- name: default
   ip_routing: false
 - name: STATION
   tenant: hawaiianairlines
   ip_routing: true
-management_interfaces:
-- name: Management1
-  description: oob_management
-  shutdown: false
-  vrf: MGMT
-  ip_address: 10.90.245.41/24
-  gateway: 10.90.245.1
-  type: oob
 platform:
   sfe:
     data_plane_cpu_allocation_max: 4
 management_api_http:
   enable_vrfs:
-  - name: MGMT
+  - name: default
   enable_https: true
 ntp:
   servers:
@@ -225,6 +211,9 @@ route_maps:
     type: permit
     match:
     - extcommunity ECL-EVPN-SOO
+static_routes:
+- destination_address_prefix: 0.0.0.0/0
+  gateway: 142.215.104.112
 agents:
 - name: KernelFib
   environment_variables:

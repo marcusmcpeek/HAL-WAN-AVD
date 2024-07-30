@@ -17,12 +17,12 @@
 
 | POD | Type | Node | Management IP | Platform | Provisioned in CloudVision | Serial Number |
 | --- | ---- | ---- | ------------- | -------- | -------------------------- | ------------- |
-| WAN | wan_rr | arista-pf1-ch-test | 10.90.245.41/24 | - | Provisioned | - |
-| WAN | wan_rr | arista-pf2-ch-test | 10.90.245.35/24 | - | Provisioned | - |
-| WAN | wan_router | arista-r1-ch-test | 10.90.245.93/24 | - | Provisioned | - |
-| WAN | wan_router | arista-r2-ch-test | 10.90.245.92/24 | - | Provisioned | - |
-| WAN | wan_router | Site-DRF-INET-SDWAN | 10.90.245.94/24 | - | Provisioned | - |
-| WAN | wan_router | Site-Tier1-130-INET-SDWAN | 10.90.245.42/24 | - | Provisioned | - |
+| WAN | wan_rr | arista-pf1-ch-test | - | - | Provisioned | - |
+| WAN | wan_rr | arista-pf2-ch-test | - | - | Provisioned | - |
+| WAN | wan_router | arista-r1-ch-test | - | - | Provisioned | - |
+| WAN | wan_router | arista-r2-ch-test | - | - | Provisioned | - |
+| WAN | wan_router | Site-DRF-INET-SDWAN | - | - | Provisioned | - |
+| WAN | wan_router | Site-Tier1-130-INET-SDWAN | - | - | Provisioned | - |
 
 > Provision status is based on Ansible inventory declaration and do not represent real status from CloudVision.
 

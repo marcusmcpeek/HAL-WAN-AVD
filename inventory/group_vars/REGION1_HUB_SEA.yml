@@ -17,7 +17,8 @@ wan_router:  # dynamic_key: node_type
       cv_pathfinder_site: Site-EQX-SEA
       loopback_ipv4_pool: 10.254.108.1/32
       vtep_loopback_ipv4_pool: 192.168.108.1/32
-      mgmt_ip: 10.90.245.93/24
+      # mgmt_ip: 10.90.245.93/24
+      mgmt_ip: null
       l3_interfaces:
         - name: Ethernet1
           ip_address: dhcp

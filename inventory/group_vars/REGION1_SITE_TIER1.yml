@@ -14,7 +14,8 @@ wan_router:  # dynamic_key: node_type
   nodes:
     - name: Site-Tier1-130-INET-SDWAN
       cv_pathfinder_site: Site-Tier1-130
-      mgmt_ip: 10.90.245.42/24
+      # mgmt_ip: 10.90.245.42/24
+      mgmt_ip: null
       loopback_ipv4_pool: 10.254.130.1/32
       vtep_loopback_ipv4_pool: 192.168.130.1/32
       l3_interfaces:

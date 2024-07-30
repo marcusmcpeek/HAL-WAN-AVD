@@ -15,7 +15,8 @@ wan_router:  # dynamic_key: node_type
   nodes:
     - name: arista-r2-ch-test
       cv_pathfinder_site: Site-EQX-ASH
-      mgmt_ip: 10.90.245.92/24
+      # mgmt_ip: 10.90.245.92/24
+      mgmt_ip: null
       loopback_ipv4_pool: 10.254.109.1/32
       vtep_loopback_ipv4_pool: 192.168.109.1/32
       l3_interfaces:

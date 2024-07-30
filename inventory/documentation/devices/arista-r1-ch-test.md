@@ -4,7 +4,6 @@
 
 - [Management](#management)
   - [Agents](#agents)
-  - [Management Interfaces](#management-interfaces)
   - [IP Name Servers](#ip-name-servers)
   - [NTP](#ntp)
   - [Management SSH](#management-ssh)
@@ -97,33 +96,6 @@
 agent KernelFib environment KERNELFIB_PROGRAM_ALL_ECMP='true'
 ```
 
-### Management Interfaces
-
-#### Management Interfaces Summary
-
-##### IPv4
-
-| Management Interface | Description | Type | VRF | IP Address | Gateway |
-| -------------------- | ----------- | ---- | --- | ---------- | ------- |
-| Management1 | oob_management | oob | MGMT | 10.90.245.93/24 | 10.90.245.1 |
-
-##### IPv6
-
-| Management Interface | Description | Type | VRF | IPv6 Address | IPv6 Gateway |
-| -------------------- | ----------- | ---- | --- | ------------ | ------------ |
-| Management1 | oob_management | oob | MGMT | - | - |
-
-#### Management Interfaces Device Configuration
-
-```eos
-!
-interface Management1
-   description oob_management
-   no shutdown
-   vrf MGMT
-   ip address 10.90.245.93/24
-```
-
 ### IP Name Servers
 
 #### IP Name Servers Summary
@@ -198,7 +170,7 @@ management ssh
 
 | VRF Name | IPv4 ACL | IPv6 ACL |
 | -------- | -------- | -------- |
-| MGMT | - | - |
+| default | - | - |
 
 #### Management API HTTP Device Configuration
 
@@ -208,7 +180,7 @@ management api http-commands
    protocol https
    no shutdown
    !
-   vrf MGMT
+   vrf default
       no shutdown
 ```
 
@@ -288,14 +260,14 @@ management security
 
 | CV Compression | CloudVision Servers | VRF | Authentication | Smash Excludes | Ingest Exclude | Bypass AAA |
 | -------------- | ------------------- | --- | -------------- | -------------- | -------------- | ---------- |
-| gzip | apiserver.arista.io:443 | MGMT | token-secure,/tmp/cv-onboarding-token | ale,flexCounter,hardware,kni,pulse,strata | /Sysdb/cell/1/agent,/Sysdb/cell/2/agent | True |
+| gzip | apiserver.arista.io:443 | default | token-secure,/tmp/cv-onboarding-token | ale,flexCounter,hardware,kni,pulse,strata | /Sysdb/cell/1/agent,/Sysdb/cell/2/agent | True |
 
 #### TerminAttr Daemon Device Configuration
 
 ```eos
 !
 daemon TerminAttr
-   exec /usr/bin/TerminAttr -cvaddr=apiserver.arista.io:443 -cvauth=token-secure,/tmp/cv-onboarding-token -cvvrf=MGMT -disableaaa -smashexcludes=ale,flexCounter,hardware,kni,pulse,strata -ingestexclude=/Sysdb/cell/1/agent,/Sysdb/cell/2/agent -taillogs
+   exec /usr/bin/TerminAttr -cvaddr=apiserver.arista.io:443 -cvauth=token-secure,/tmp/cv-onboarding-token -cvvrf=default -disableaaa -smashexcludes=ale,flexCounter,hardware,kni,pulse,strata -ingestexclude=/Sysdb/cell/1/agent,/Sysdb/cell/2/agent -taillogs
    no shutdown
 ```
 
@@ -603,7 +575,6 @@ service routing protocols model multi-agent
 | VRF | Routing Enabled |
 | --- | --------------- |
 | default | True |
-| MGMT | False |
 | STATION | True |
 
 #### IP Routing Device Configuration
@@ -611,7 +582,6 @@ service routing protocols model multi-agent
 ```eos
 !
 ip routing
-no ip routing vrf MGMT
 ip routing vrf STATION
 ```
 
@@ -622,7 +592,7 @@ ip routing vrf STATION
 | VRF | Routing Enabled |
 | --- | --------------- |
 | default | False |
-| MGMT | false |
+| default | false |
 | STATION | false |
 
 ### Static Routes
@@ -631,14 +601,12 @@ ip routing vrf STATION
 
 | VRF | Destination Prefix | Next Hop IP | Exit interface | Administrative Distance | Tag | Route Name | Metric |
 | --- | ------------------ | ----------- | -------------- | ----------------------- | --- | ---------- | ------ |
-| MGMT | 0.0.0.0/0 | 10.90.245.1 | - | 1 | - | - | - |
 | default | 0.0.0.0/0 | 142.215.198.169 | - | 1 | - | - | - |
 
 #### Static Routes Device Configuration
 
 ```eos
 !
-ip route vrf MGMT 0.0.0.0/0 10.90.245.1
 ip route 0.0.0.0/0 142.215.198.169
 ```
 
@@ -1044,14 +1012,11 @@ ip access-list ALLOW-ALL
 
 | VRF Name | IP Routing |
 | -------- | ---------- |
-| MGMT | disabled |
 | STATION | enabled |
 
 ### VRF Instances Device Configuration
 
 ```eos
-!
-vrf instance MGMT
 !
 vrf instance STATION
 ```

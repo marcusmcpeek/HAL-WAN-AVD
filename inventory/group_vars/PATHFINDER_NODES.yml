@@ -13,7 +13,8 @@ wan_rr: # dynamic_key: node_type
   nodes:
     - name: arista-pf1-ch-test
       id: 1
-      mgmt_ip: 10.90.245.41/24
+      # mgmt_ip: 10.90.245.41/24
+      mgmt_ip: null
       l3_interfaces:
         - name: Ethernet1
           ip_address: 142.215.104.113/31
@@ -23,7 +24,8 @@ wan_rr: # dynamic_key: node_type
             - prefix: 0.0.0.0/0
     - name: arista-pf2-ch-test
       id: 2
-      mgmt_ip: 10.90.245.35/24
+      # mgmt_ip: 10.90.245.35/24
+      mgmt_ip: null
       l3_interfaces:
         - name: Ethernet1
           ip_address: 142.215.104.115/31
