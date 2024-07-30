@@ -31,7 +31,7 @@ local_users:
     sha512_password: "$6$UisBHbh7j0nDNbP9$3PzI4Cqr9NK.j.8hJV5enMrMuKDm9UEkugTDY0L0ASY4uefBHeeKA.o9WijOvXzYYBiXrcx6uk6oCsurDLYvR1"
 
 
-cvp_instance_ips: ["apiserver.cv-staging.corp.arista.io"]
+cvp_instance_ips: ["apiserver.arista.io"]
 
 custom_structured_configuration_daemon_terminattr:
   cvauth:
@@ -107,3 +107,7 @@ skipped_tests:
       - VerifyEnvironmentCooling
       - VerifyTemperature
       - VerifyTransceiversManufacturers
+
+custom_structured_configuration_logging:
+  console: "debugging"
+  monitor: "debugging"

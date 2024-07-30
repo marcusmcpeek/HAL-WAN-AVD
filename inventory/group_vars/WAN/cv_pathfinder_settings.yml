@@ -20,8 +20,8 @@ cv_pathfinder_regions:
       - name: Site-EQX-ASH
         id: 109
       - name: Site-DRF
-        id: 111
-      - name: Site-Tier1
+        id: 110
+      - name: Site-Tier1-130
         id: 130
   
 bgp_peer_groups:
@@ -41,9 +41,9 @@ wan_route_servers:
 
 wan_ipsec_profiles:
   control_plane:
-    shared_key: 050307182045470817041E00
+    shared_key: 030C5A1C0706284D40081017
   data_plane:
-    shared_key: 08294D5908100C161C0A0516
+    shared_key: 11011812161B020D0A2B2236
 
 wan_path_groups:
   - name: internet

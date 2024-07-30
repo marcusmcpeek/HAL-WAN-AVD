@@ -45,6 +45,9 @@ wan_router:  # dynamic_key: node_type
                   days: 1
                   hours: 0
                   minutes: 0
+      raw_eos_cli: |
+        ip access-list DRF-inet-inbound
+          permit response traffic nat
 
 ipv4_acls:
   - name: DRF-inet-inbound

@@ -100,7 +100,7 @@ service_routing_protocols_model: multi-agent
 ip_routing: true
 daemon_terminattr:
   cvaddrs:
-  - apiserver.cv-staging.corp.arista.io:443
+  - apiserver.arista.io:443
   cvauth:
     method: token-secure
     token_file: /tmp/cv-onboarding-token
@@ -142,6 +142,7 @@ management_api_http:
   enable_vrfs:
   - name: MGMT
   enable_https: true
+eos_cli: "ip access-list TIER1-inet-inbound\n  permit response traffic nat\n"
 ntp:
   servers:
   - name: time.google.com
@@ -317,7 +318,7 @@ ip_security:
   - name: DP-PROFILE
     sa_policy: DP-SA-POLICY
     connection: start
-    shared_key: 08294D5908100C161C0A0516
+    shared_key: 11011812161B020D0A2B2236
     dpd:
       interval: 10
       time: 50
@@ -327,7 +328,7 @@ ip_security:
     ike_policy: CP-IKE-POLICY
     sa_policy: CP-SA-POLICY
     connection: start
-    shared_key: 050307182045470817041E00
+    shared_key: 030C5A1C0706284D40081017
     dpd:
       interval: 10
       time: 50
@@ -354,7 +355,7 @@ router_adaptive_virtual_topology:
     name: Global-ZONE
     id: 1
   site:
-    name: Site-Tier1
+    name: Site-Tier1-130
     id: 130
   profiles:
   - name: DEFAULT-AVT-POLICY-CONTROL-PLANE
@@ -529,7 +530,7 @@ metadata:
     vtep_ip: 192.168.130.1
     region: Global
     zone: Global-ZONE
-    site: Site-Tier1
+    site: Site-Tier1-130
     interfaces:
     - name: Ethernet1/1
       carrier: internet
@@ -546,7 +547,7 @@ metadata:
     - name: Zone
       value: Global-ZONE
     - name: Site
-      value: Site-Tier1
+      value: Site-Tier1-130
     interface_tags:
     - interface: Ethernet1/1
       tags:
@@ -599,3 +600,6 @@ ip_name_servers:
 management_ssh:
   client_alive:
     interval: 180
+logging:
+  console: debugging
+  monitor: debugging

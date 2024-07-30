@@ -100,7 +100,7 @@ service_routing_protocols_model: multi-agent
 ip_routing: true
 daemon_terminattr:
   cvaddrs:
-  - apiserver.cv-staging.corp.arista.io:443
+  - apiserver.arista.io:443
   cvauth:
     method: token-secure
     token_file: /tmp/cv-onboarding-token
@@ -155,6 +155,8 @@ ethernet_interfaces:
   type: routed
   description: internet
   dhcp_client_accept_default_route: true
+  ip_nat:
+    service_profile: IE-DIRECT-NAT
 loopback_interfaces:
 - name: Loopback0
   description: Router_ID
@@ -221,7 +223,7 @@ ip_security:
   - name: DP-PROFILE
     sa_policy: DP-SA-POLICY
     connection: start
-    shared_key: 08294D5908100C161C0A0516
+    shared_key: 11011812161B020D0A2B2236
     dpd:
       interval: 10
       time: 50
@@ -231,7 +233,7 @@ ip_security:
     ike_policy: CP-IKE-POLICY
     sa_policy: CP-SA-POLICY
     connection: start
-    shared_key: 050307182045470817041E00
+    shared_key: 030C5A1C0706284D40081017
     dpd:
       interval: 10
       time: 50
@@ -267,6 +269,7 @@ router_adaptive_virtual_topology:
     load_balance_policy: LB-DEFAULT-AVT-POLICY-DEFAULT
   - name: StationAVTPolicy-TeamsProfile
     load_balance_policy: LB-StationAVTPolicy-TeamsProfile
+    internet_exit_policy: STATION-avt-defaultIEPolicy
   - name: StationAVTPolicy-DEFAULT
     load_balance_policy: LB-StationAVTPolicy-DEFAULT
   vrfs:
@@ -370,6 +373,39 @@ application_traffic_recognition:
       prefix_values:
       - 192.168.99.1/32
       - 192.168.99.2/32
+ip_access_lists:
+- name: ALLOW-ALL
+  entries:
+  - sequence: 10
+    action: permit
+    protocol: ip
+    source: any
+    destination: any
+ip_nat:
+  profiles:
+  - name: IE-DIRECT-NAT
+    source:
+      dynamic:
+      - access_list: ALLOW-ALL
+        nat_type: overload
+router_service_insertion:
+  enabled: true
+  connections:
+  - name: IE-Ethernet1
+    monitor_connectivity_host: IE-Ethernet1
+    ethernet_interface:
+      name: Ethernet1
+      next_hop: 142.215.198.169
+router_internet_exit:
+  exit_groups:
+  - name: STATION-avt-defaultIEPolicy
+    local_connections:
+    - name: IE-Ethernet1
+  policies:
+  - name: STATION-avt-defaultIEPolicy
+    exit_groups:
+    - name: STATION-avt-defaultIEPolicy
+    - name: system-default-exit-group
 dps_interfaces:
 - name: Dps1
   description: DPS Interface
@@ -388,21 +424,33 @@ vxlan_interface:
         vni: 101
       - name: STATION
         vni: 201
-flow_tracking:
-  hardware:
-    trackers:
-    - name: FLOW-TRACKER
-      record_export:
-        on_inactive_timeout: 70000
-        on_interval: 300000
-      exporters:
-      - name: CV-TELEMETRY
-        collector:
-          host: 127.0.0.1
-        local_interface: Loopback0
-        template_interval: 3600000
-    shutdown: false
+monitor_connectivity:
+  interface_sets:
+  - name: SET-Ethernet1
+    interfaces: Ethernet1
+  hosts:
+  - name: IE-Ethernet1
+    description: Internet Exit STATION-avt-defaultIEPolicy
+    ip: 142.215.198.169
+    local_interfaces: SET-Ethernet1
+    address_only: false
+  shutdown: false
 metadata:
+  cv_pathfinder:
+    internet_exit_policies: []
+    role: transit region
+    ssl_profile: STUN-DTLS
+    vtep_ip: 192.168.108.1
+    region: Global
+    zone: Global-ZONE
+    site: Site-EQX-SEA
+    interfaces:
+    - name: Ethernet1
+      carrier: internet
+      pathgroup: internet
+    pathfinders:
+    - vtep_ip: 192.168.99.1
+    - vtep_ip: 192.168.99.2
   cv_tags:
     device_tags:
     - name: Role
@@ -420,20 +468,20 @@ metadata:
         value: wan
       - name: Carrier
         value: internet
-  cv_pathfinder:
-    role: transit region
-    ssl_profile: STUN-DTLS
-    vtep_ip: 192.168.108.1
-    region: Global
-    zone: Global-ZONE
-    site: Site-EQX-SEA
-    interfaces:
-    - name: Ethernet1
-      carrier: internet
-      pathgroup: internet
-    pathfinders:
-    - vtep_ip: 192.168.99.1
-    - vtep_ip: 192.168.99.2
+flow_tracking:
+  hardware:
+    trackers:
+    - name: FLOW-TRACKER
+      record_export:
+        on_inactive_timeout: 70000
+        on_interval: 300000
+      exporters:
+      - name: CV-TELEMETRY
+        collector:
+          host: 127.0.0.1
+        local_interface: Loopback0
+        template_interval: 3600000
+    shutdown: false
 switchport_default:
   mode: routed
 system:
@@ -448,3 +496,6 @@ ip_name_servers:
 management_ssh:
   client_alive:
     interval: 180
+logging:
+  console: debugging
+  monitor: debugging

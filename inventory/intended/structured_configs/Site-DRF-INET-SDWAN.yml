@@ -100,7 +100,7 @@ service_routing_protocols_model: multi-agent
 ip_routing: true
 daemon_terminattr:
   cvaddrs:
-  - apiserver.cv-staging.corp.arista.io:443
+  - apiserver.arista.io:443
   cvauth:
     method: token-secure
     token_file: /tmp/cv-onboarding-token
@@ -142,6 +142,7 @@ management_api_http:
   enable_vrfs:
   - name: MGMT
   enable_https: true
+eos_cli: "ip access-list DRF-inet-inbound\n  permit response traffic nat\n"
 ntp:
   servers:
   - name: time.google.com
@@ -176,7 +177,7 @@ route_maps:
     match:
     - ip address prefix-list PL-LOOPBACKS-EVPN-OVERLAY
     set:
-    - extcommunity soo 10.254.110.1:111 additive
+    - extcommunity soo 10.254.110.1:110 additive
 - name: RM-EVPN-SOO-IN
   sequence_numbers:
   - sequence: 10
@@ -190,7 +191,7 @@ route_maps:
   - sequence: 10
     type: permit
     set:
-    - extcommunity soo 10.254.110.1:111 additive
+    - extcommunity soo 10.254.110.1:110 additive
 - name: RM-EVPN-EXPORT-VRF-DEFAULT
   sequence_numbers:
   - sequence: 10
@@ -387,7 +388,7 @@ ip_extcommunity_lists:
 - name: ECL-EVPN-SOO
   entries:
   - type: permit
-    extcommunities: soo 10.254.110.1:111
+    extcommunities: soo 10.254.110.1:110
 ip_security:
   ike_policies:
   - name: CP-IKE-POLICY
@@ -405,7 +406,7 @@ ip_security:
   - name: DP-PROFILE
     sa_policy: DP-SA-POLICY
     connection: start
-    shared_key: 08294D5908100C161C0A0516
+    shared_key: 11011812161B020D0A2B2236
     dpd:
       interval: 10
       time: 50
@@ -415,7 +416,7 @@ ip_security:
     ike_policy: CP-IKE-POLICY
     sa_policy: CP-SA-POLICY
     connection: start
-    shared_key: 050307182045470817041E00
+    shared_key: 030C5A1C0706284D40081017
     dpd:
       interval: 10
       time: 50
@@ -443,7 +444,7 @@ router_adaptive_virtual_topology:
     id: 1
   site:
     name: Site-DRF
-    id: 111
+    id: 110
   profiles:
   - name: DEFAULT-AVT-POLICY-CONTROL-PLANE
     load_balance_policy: LB-DEFAULT-AVT-POLICY-CONTROL-PLANE
@@ -687,3 +688,6 @@ ip_name_servers:
 management_ssh:
   client_alive:
     interval: 180
+logging:
+  console: debugging
+  monitor: debugging

@@ -22,6 +22,7 @@
   - [DHCP Server Configuration](#dhcp-server-configuration)
 - [Monitoring](#monitoring)
   - [TerminAttr Daemon](#terminattr-daemon)
+  - [Logging](#logging)
   - [Flow Tracking](#flow-tracking)
 - [Monitor Connectivity](#monitor-connectivity)
   - [Global Configuration](#global-configuration)
@@ -79,6 +80,7 @@
 - [STUN](#stun)
   - [STUN Client](#stun-client)
   - [STUN Device Configuration](#stun-device-configuration)
+- [EOS CLI Device Configuration](#eos-cli-device-configuration)
 
 ## Management
 
@@ -321,15 +323,32 @@ dhcp server vrf STATION
 
 | CV Compression | CloudVision Servers | VRF | Authentication | Smash Excludes | Ingest Exclude | Bypass AAA |
 | -------------- | ------------------- | --- | -------------- | -------------- | -------------- | ---------- |
-| gzip | apiserver.cv-staging.corp.arista.io:443 | MGMT | token-secure,/tmp/cv-onboarding-token | ale,flexCounter,hardware,kni,pulse,strata | /Sysdb/cell/1/agent,/Sysdb/cell/2/agent | True |
+| gzip | apiserver.arista.io:443 | MGMT | token-secure,/tmp/cv-onboarding-token | ale,flexCounter,hardware,kni,pulse,strata | /Sysdb/cell/1/agent,/Sysdb/cell/2/agent | True |
 
 #### TerminAttr Daemon Device Configuration
 
 ```eos
 !
 daemon TerminAttr
-   exec /usr/bin/TerminAttr -cvaddr=apiserver.cv-staging.corp.arista.io:443 -cvauth=token-secure,/tmp/cv-onboarding-token -cvvrf=MGMT -disableaaa -smashexcludes=ale,flexCounter,hardware,kni,pulse,strata -ingestexclude=/Sysdb/cell/1/agent,/Sysdb/cell/2/agent -taillogs
+   exec /usr/bin/TerminAttr -cvaddr=apiserver.arista.io:443 -cvauth=token-secure,/tmp/cv-onboarding-token -cvvrf=MGMT -disableaaa -smashexcludes=ale,flexCounter,hardware,kni,pulse,strata -ingestexclude=/Sysdb/cell/1/agent,/Sysdb/cell/2/agent -taillogs
    no shutdown
+```
+
+### Logging
+
+#### Logging Servers and Features Summary
+
+| Type | Level |
+| -----| ----- |
+| Console | debugging |
+| Monitor | debugging |
+
+#### Logging Servers and Features Device Configuration
+
+```eos
+!
+logging console debugging
+logging monitor debugging
 ```
 
 ### Flow Tracking
@@ -669,7 +688,7 @@ Topology role: edge
 | --------- | ---- | -- |
 | Region | Global | 1 |
 | Zone | Global-ZONE | 1 |
-| Site | Site-DRF | 111 |
+| Site | Site-DRF | 110 |
 
 #### AVT Profiles
 
@@ -728,7 +747,7 @@ router adaptive-virtual-topology
    topology role edge
    region Global id 1
    zone Global-ZONE id 1
-   site Site-DRF id 111
+   site Site-DRF id 110
    !
    policy DEFAULT-AVT-POLICY-WITH-CP
       !
@@ -987,7 +1006,7 @@ ip prefix-list PL-LOOPBACKS-EVPN-OVERLAY
 
 | Sequence | Type | Match | Set | Sub-Route-Map | Continue |
 | -------- | ---- | ----- | --- | ------------- | -------- |
-| 10 | permit | ip address prefix-list PL-LOOPBACKS-EVPN-OVERLAY | extcommunity soo 10.254.110.1:111 additive | - | - |
+| 10 | permit | ip address prefix-list PL-LOOPBACKS-EVPN-OVERLAY | extcommunity soo 10.254.110.1:110 additive | - | - |
 
 ##### RM-EVPN-EXPORT-VRF-DEFAULT
 
@@ -1006,7 +1025,7 @@ ip prefix-list PL-LOOPBACKS-EVPN-OVERLAY
 
 | Sequence | Type | Match | Set | Sub-Route-Map | Continue |
 | -------- | ---- | ----- | --- | ------------- | -------- |
-| 10 | permit | - | extcommunity soo 10.254.110.1:111 additive | - | - |
+| 10 | permit | - | extcommunity soo 10.254.110.1:110 additive | - | - |
 
 #### Route-maps Device Configuration
 
@@ -1014,7 +1033,7 @@ ip prefix-list PL-LOOPBACKS-EVPN-OVERLAY
 !
 route-map RM-CONN-2-BGP permit 10
    match ip address prefix-list PL-LOOPBACKS-EVPN-OVERLAY
-   set extcommunity soo 10.254.110.1:111 additive
+   set extcommunity soo 10.254.110.1:110 additive
 !
 route-map RM-EVPN-EXPORT-VRF-DEFAULT permit 10
    match extcommunity ECL-EVPN-SOO
@@ -1025,7 +1044,7 @@ route-map RM-EVPN-SOO-IN deny 10
 route-map RM-EVPN-SOO-IN permit 20
 !
 route-map RM-EVPN-SOO-OUT permit 10
-   set extcommunity soo 10.254.110.1:111 additive
+   set extcommunity soo 10.254.110.1:110 additive
 ```
 
 ### IP Extended Community Lists
@@ -1034,13 +1053,13 @@ route-map RM-EVPN-SOO-OUT permit 10
 
 | List Name | Type | Extended Communities |
 | --------- | ---- | -------------------- |
-| ECL-EVPN-SOO | permit | soo 10.254.110.1:111 |
+| ECL-EVPN-SOO | permit | soo 10.254.110.1:110 |
 
 #### IP Extended Community Lists Device Configuration
 
 ```eos
 !
-ip extcommunity-list ECL-EVPN-SOO permit soo 10.254.110.1:111
+ip extcommunity-list ECL-EVPN-SOO permit soo 10.254.110.1:110
 ```
 
 ## ACL
@@ -1330,4 +1349,13 @@ stun
       server-profile internet-arista-pf2-ch-test-Ethernet1
          ip address 142.215.104.115
          ssl profile STUN-DTLS
+```
+
+## EOS CLI Device Configuration
+
+```eos
+!
+ip access-list DRF-inet-inbound
+  permit response traffic nat
+
 ```

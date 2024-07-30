@@ -25,3 +25,6 @@ wan_router:  # dynamic_key: node_type
           peer_ip: 142.215.198.169
           static_routes:
             - prefix: 0.0.0.0/0
+          cv_pathfinder_internet_exit: 
+            policies:
+              - name: STATION-avt-defaultIEPolicy
