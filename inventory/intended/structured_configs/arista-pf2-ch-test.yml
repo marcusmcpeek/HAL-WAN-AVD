@@ -120,17 +120,17 @@ router_bgp:
         - 65199:101
         - route-map RM-EVPN-EXPORT-VRF-DEFAULT
   - name: STATION
-    router_id: 10.254.99.2
-    rd: 192.168.99.2:102
+    router_id: 192.168.99.2
+    rd: 192.168.99.2:201
     route_targets:
       import:
       - address_family: evpn
         route_targets:
-        - 65199:102
+        - 65199:201
       export:
       - address_family: evpn
         route_targets:
-        - 65199:102
+        - 65199:201
     redistribute_routes:
     - source_protocol: connected
 service_routing_protocols_model: multi-agent
@@ -149,6 +149,10 @@ transceiver_qsfp_default_mode_4x10: false
 spanning_tree:
   mode: none
 local_users:
+- name: admin
+  role: network-admin
+  privilege: 15
+  sha512_password: $6$JrS3d2nAMOGnIlAh$h3J1UHELqo4rO4X.11QwVWltyNzvT4EV/7ufhuJ.yonFGjRWm8YpCbLN3IldeWZqs8YIOoKSrdx2f6Dsgg1OF0
 - name: neteng1
   role: network-admin
   privilege: 15

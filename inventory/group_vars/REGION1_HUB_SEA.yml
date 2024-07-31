@@ -4,7 +4,7 @@
 # type: wan_transit
 # type: wan_router
 
-local_users:
+custom_structured_configuration_local_users:
   - name: neteng1
     role: network-admin
     privilege: 15
@@ -26,6 +26,9 @@ wan_router:  # dynamic_key: node_type
       structured_config:
         router_bgp:
           router_id: 192.168.108.1
+          vrfs:
+            - name: STATION
+              router_id: 192.168.108.1
       # mgmt_ip: 10.90.245.93/24
       mgmt_ip: null
       l3_interfaces:

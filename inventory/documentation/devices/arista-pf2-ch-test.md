@@ -181,12 +181,14 @@ management api http-commands
 
 | User | Privilege | Role | Disabled | Shell |
 | ---- | --------- | ---- | -------- | ----- |
+| admin | 15 | network-admin | False | - |
 | neteng1 | 15 | network-admin | False | - |
 
 #### Local Users Device Configuration
 
 ```eos
 !
+username admin privilege 15 role network-admin secret sha512 <removed>
 username neteng1 privilege 15 role network-admin secret sha512 <removed>
 ```
 
@@ -738,7 +740,7 @@ ASN Notation: asplain
 | VRF | Route-Distinguisher | Redistribute |
 | --- | ------------------- | ------------ |
 | default | 192.168.99.2:101 | - |
-| STATION | 192.168.99.2:102 | connected |
+| STATION | 192.168.99.2:201 | connected |
 
 #### Router BGP Device Configuration
 
@@ -809,10 +811,10 @@ router bgp 65199
       route-target export evpn route-map RM-EVPN-EXPORT-VRF-DEFAULT
    !
    vrf STATION
-      rd 192.168.99.2:102
-      route-target import evpn 65199:102
-      route-target export evpn 65199:102
-      router-id 10.254.99.2
+      rd 192.168.99.2:201
+      route-target import evpn 65199:201
+      route-target export evpn 65199:201
+      router-id 192.168.99.2
       redistribute connected
 ```
 

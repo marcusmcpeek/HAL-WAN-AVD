@@ -191,12 +191,14 @@ management api http-commands
 
 | User | Privilege | Role | Disabled | Shell |
 | ---- | --------- | ---- | -------- | ----- |
+| admin | 15 | network-admin | False | - |
 | neteng1 | 15 | network-admin | False | - |
 
 #### Local Users Device Configuration
 
 ```eos
 !
+username admin privilege 15 role network-admin secret sha512 <removed>
 username neteng1 privilege 15 role network-admin secret sha512 <removed>
 ```
 
@@ -606,8 +608,8 @@ Topology role: transit region
 | ------------ | ------------------- | -------------------- |
 | DEFAULT-AVT-POLICY-CONTROL-PLANE | LB-DEFAULT-AVT-POLICY-CONTROL-PLANE | - |
 | DEFAULT-AVT-POLICY-DEFAULT | LB-DEFAULT-AVT-POLICY-DEFAULT | - |
-| StationAVTPolicy-DEFAULT | LB-StationAVTPolicy-DEFAULT | - |
-| StationAVTPolicy-TeamsProfile | LB-StationAVTPolicy-TeamsProfile | STATION-avt-defaultIEPolicy |
+| StationAVTPolicy-DEFAULT | LB-StationAVTPolicy-DEFAULT | STATION-avt-defaultIEPolicy |
+| StationAVTPolicy-TeamsProfile | LB-StationAVTPolicy-TeamsProfile | - |
 
 #### AVT Policies
 
@@ -682,10 +684,10 @@ router adaptive-virtual-topology
       path-selection load-balance LB-DEFAULT-AVT-POLICY-DEFAULT
    !
    profile StationAVTPolicy-DEFAULT
+      internet-exit policy STATION-avt-defaultIEPolicy
       path-selection load-balance LB-StationAVTPolicy-DEFAULT
    !
    profile StationAVTPolicy-TeamsProfile
-      internet-exit policy STATION-avt-defaultIEPolicy
       path-selection load-balance LB-StationAVTPolicy-TeamsProfile
    !
    vrf default
@@ -812,7 +814,7 @@ ASN Notation: asplain
 | VRF | Route-Distinguisher | Redistribute |
 | --- | ------------------- | ------------ |
 | default | 192.168.108.1:101 | - |
-| STATION | 192.168.108.1:102 | connected |
+| STATION | 192.168.108.1:201 | connected |
 
 #### Router BGP Device Configuration
 
@@ -863,10 +865,10 @@ router bgp 65199
       route-target export evpn route-map RM-EVPN-EXPORT-VRF-DEFAULT
    !
    vrf STATION
-      rd 192.168.108.1:102
-      route-target import evpn 65199:102
-      route-target export evpn 65199:102
-      router-id 10.254.108.1
+      rd 192.168.108.1:201
+      route-target import evpn 65199:201
+      route-target export evpn 65199:201
+      router-id 192.168.108.1
       redistribute connected
 ```
 

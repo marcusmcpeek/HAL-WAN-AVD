@@ -16,6 +16,11 @@ overlay_rd_type:
 overlay_rt_type:
   admin_subfield: bgp_as
 
+custom_structured_configuration_prefix:
+  - custom_structured_configuration_
+  - group_custom_structured_
+  - host_custom_structured_
+
 cv_pathfinder_regions:
   - name: Global
     id: 1

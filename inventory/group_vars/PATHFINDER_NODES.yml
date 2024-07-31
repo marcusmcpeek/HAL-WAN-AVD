@@ -3,7 +3,7 @@
 
 # type: wan_rr
 
-local_users:
+custom_structured_configuration_local_users:
   - name: neteng1
     role: network-admin
     privilege: 15
@@ -24,6 +24,9 @@ wan_rr: # dynamic_key: node_type
       structured_config:
         router_bgp:
           router_id: 192.168.99.1
+          vrfs:
+            - name: STATION
+              router_id: 192.168.99.1
       l3_interfaces:
         - name: Ethernet1
           ip_address: 142.215.104.113/31
@@ -38,6 +41,9 @@ wan_rr: # dynamic_key: node_type
       structured_config:
         router_bgp:
           router_id: 192.168.99.2
+          vrfs:
+            - name: STATION
+              router_id: 192.168.99.2
       l3_interfaces:
         - name: Ethernet1
           ip_address: 142.215.104.115/31
