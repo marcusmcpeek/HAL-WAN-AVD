@@ -809,6 +809,7 @@ router bgp 65199
       route-target import evpn 65199:101
       route-target export evpn 65199:101
       route-target export evpn route-map RM-EVPN-EXPORT-VRF-DEFAULT
+      router-id 192.168.99.2
    !
    vrf STATION
       rd 192.168.99.2:201

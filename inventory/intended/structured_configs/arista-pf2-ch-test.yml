@@ -119,6 +119,7 @@ router_bgp:
         route_targets:
         - 65199:101
         - route-map RM-EVPN-EXPORT-VRF-DEFAULT
+    router_id: 192.168.99.2
   - name: STATION
     router_id: 192.168.99.2
     rd: 192.168.99.2:201
