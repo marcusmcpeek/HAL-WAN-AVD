@@ -21,7 +21,6 @@
   - [DHCP Server Configuration](#dhcp-server-configuration)
 - [Monitoring](#monitoring)
   - [TerminAttr Daemon](#terminattr-daemon)
-  - [Logging](#logging)
   - [Flow Tracking](#flow-tracking)
 - [Monitor Connectivity](#monitor-connectivity)
   - [Global Configuration](#global-configuration)
@@ -196,17 +195,13 @@ management api http-commands
 
 | User | Privilege | Role | Disabled | Shell |
 | ---- | --------- | ---- | -------- | ----- |
-| admin | 15 | network-admin | False | - |
 | demo | 15 | network-admin | False | - |
-| neteng1 | 15 | network-admin | False | - |
 
 #### Local Users Device Configuration
 
 ```eos
 !
-username admin privilege 15 role network-admin secret sha512 <removed>
 username demo privilege 15 role network-admin secret sha512 <removed>
-username neteng1 privilege 15 role network-admin secret sha512 <removed>
 ```
 
 ### AAA Authorization
@@ -304,23 +299,6 @@ dhcp server vrf STATION
 daemon TerminAttr
    exec /usr/bin/TerminAttr -cvaddr=apiserver.arista.io:443 -cvauth=token-secure,/tmp/cv-onboarding-token -cvvrf=default -disableaaa -smashexcludes=ale,flexCounter,hardware,kni,pulse,strata -ingestexclude=/Sysdb/cell/1/agent,/Sysdb/cell/2/agent -taillogs
    no shutdown
-```
-
-### Logging
-
-#### Logging Servers and Features Summary
-
-| Type | Level |
-| -----| ----- |
-| Console | debugging |
-| Monitor | debugging |
-
-#### Logging Servers and Features Device Configuration
-
-```eos
-!
-logging console debugging
-logging monitor debugging
 ```
 
 ### Flow Tracking
@@ -798,7 +776,7 @@ ASN Notation: asplain
 
 | BGP AS | Router ID |
 | ------ | --------- |
-| 65199 | 10.254.130.1 |
+| 65199 | 192.168.130.1 |
 
 | BGP Tuning |
 | ---------- |
@@ -869,15 +847,15 @@ ASN Notation: asplain
 
 | VRF | Route-Distinguisher | Redistribute |
 | --- | ------------------- | ------------ |
-| default | 10.254.130.1:101 | - |
-| STATION | 10.254.130.1:102 | connected |
+| default | 192.168.130.1 | - |
+| STATION | 192.168.130.1 | connected |
 
 #### Router BGP Device Configuration
 
 ```eos
 !
 router bgp 65199
-   router-id 10.254.130.1
+   router-id 192.168.130.1
    maximum-paths 16
    no bgp default ipv4-unicast
    neighbor WAN-OVERLAY-PEERS peer group
@@ -915,13 +893,13 @@ router bgp 65199
       neighbor WAN-OVERLAY-PEERS activate
    !
    vrf default
-      rd 10.254.130.1:101
+      rd 192.168.130.1
       route-target import evpn 65199:101
       route-target export evpn 65199:101
       route-target export evpn route-map RM-EVPN-EXPORT-VRF-DEFAULT
    !
    vrf STATION
-      rd 10.254.130.1:102
+      rd 192.168.130.1
       route-target import evpn 65199:102
       route-target export evpn 65199:102
       router-id 10.254.130.1

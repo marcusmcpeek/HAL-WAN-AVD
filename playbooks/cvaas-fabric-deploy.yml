@@ -1,0 +1,15 @@
+---
+- name: Configuration deployment to CVaaS
+  hosts: WAN # <-- Targeted devices
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Deploy configurations and tags to CloudVision
+      ansible.builtin.import_role:
+        name: arista.avd.cv_deploy
+      vars:
+        # cv_inventory_hostname: cvaas
+        cv_server: www.cv-staging.corp.arista.io
+        cv_token: "{{ vault_cvaas_pass }}"
+        cv_run_change_control: false
+        deploy_to_cv_accept_preview: true

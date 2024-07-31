@@ -11,6 +11,9 @@ wan_mode: cv-pathfinder
 
 bgp_as: 65199
 
+overlay_rd_type:
+  admin_subfield: bgp_as
+
 cv_pathfinder_regions:
   - name: Global
     id: 1

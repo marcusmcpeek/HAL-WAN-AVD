@@ -4,6 +4,14 @@
 # type: wan_edge
 # type: wan_router
 
+local_users:
+
+  - name: demo
+    role: network-admin
+    privilege: 15
+    sha512_password: "$6$UisBHbh7j0nDNbP9$3PzI4Cqr9NK.j.8hJV5enMrMuKDm9UEkugTDY0L0ASY4uefBHeeKA.o9WijOvXzYYBiXrcx6uk6oCsurDLYvR1"
+
+
 wan_router:  # dynamic_key: node_type
   defaults:
     id: 1
@@ -31,6 +39,13 @@ wan_router:  # dynamic_key: node_type
             policies:
               - name: STATION-avt-defaultIEPolicy
       structured_config:
+        router_bgp:
+          router_id: 192.168.130.1
+          vrfs:
+            - name: default
+              rd: 192.168.130.1
+            - name: STATION
+              rd: 192.168.130.1
         dhcp_servers:
           - disabled: false
             vrf: STATION

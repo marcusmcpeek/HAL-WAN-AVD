@@ -2,7 +2,7 @@ hostname: arista-r1-ch-test
 is_deployed: true
 router_bgp:
   as: '65199'
-  router_id: 10.254.108.1
+  router_id: 192.168.108.1
   bgp:
     default:
       ipv4_unicast: false
@@ -65,7 +65,7 @@ router_bgp:
     description: arista-pf2-ch-test
   vrfs:
   - name: default
-    rd: 10.254.108.1:101
+    rd: 192.168.108.1
     route_targets:
       import:
       - address_family: evpn
@@ -78,7 +78,7 @@ router_bgp:
         - route-map RM-EVPN-EXPORT-VRF-DEFAULT
   - name: STATION
     router_id: 10.254.108.1
-    rd: 10.254.108.1:102
+    rd: 192.168.108.1
     route_targets:
       import:
       - address_family: evpn
@@ -106,14 +106,6 @@ transceiver_qsfp_default_mode_4x10: false
 spanning_tree:
   mode: none
 local_users:
-- name: admin
-  role: network-admin
-  privilege: 15
-  sha512_password: $6$JrS3d2nAMOGnIlAh$h3J1UHELqo4rO4X.11QwVWltyNzvT4EV/7ufhuJ.yonFGjRWm8YpCbLN3IldeWZqs8YIOoKSrdx2f6Dsgg1OF0
-- name: demo
-  role: network-admin
-  privilege: 15
-  sha512_password: $6$UisBHbh7j0nDNbP9$3PzI4Cqr9NK.j.8hJV5enMrMuKDm9UEkugTDY0L0ASY4uefBHeeKA.o9WijOvXzYYBiXrcx6uk6oCsurDLYvR1
 - name: neteng1
   role: network-admin
   privilege: 15
@@ -485,6 +477,3 @@ ip_name_servers:
 management_ssh:
   client_alive:
     interval: 180
-logging:
-  console: debugging
-  monitor: debugging
