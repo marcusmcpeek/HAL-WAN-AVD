@@ -65,7 +65,7 @@ router_bgp:
     description: arista-pf2-ch-test
   vrfs:
   - name: default
-    rd: 192.168.110.1
+    rd: 192.168.110.1:101
     route_targets:
       import:
       - address_family: evpn
@@ -78,7 +78,7 @@ router_bgp:
         - route-map RM-EVPN-EXPORT-VRF-DEFAULT
   - name: STATION
     router_id: 10.254.110.1
-    rd: 192.168.110.1
+    rd: 192.168.110.1:102
     route_targets:
       import:
       - address_family: evpn

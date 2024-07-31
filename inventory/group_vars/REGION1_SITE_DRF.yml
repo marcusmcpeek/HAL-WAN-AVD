@@ -41,11 +41,6 @@ wan_router:  # dynamic_key: node_type
       structured_config:
         router_bgp:
           router_id: 192.168.110.1
-          vrfs:
-            - name: default
-              rd: 192.168.110.1
-            - name: STATION
-              rd: 192.168.110.1
         dhcp_servers:
           - disabled: false
             vrf: STATION

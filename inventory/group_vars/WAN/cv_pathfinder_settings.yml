@@ -12,6 +12,8 @@ wan_mode: cv-pathfinder
 bgp_as: 65199
 
 overlay_rd_type:
+  admin_subfield: vtep_loopback
+overlay_rt_type:
   admin_subfield: bgp_as
 
 cv_pathfinder_regions:

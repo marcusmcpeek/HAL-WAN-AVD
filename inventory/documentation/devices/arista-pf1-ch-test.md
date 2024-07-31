@@ -737,8 +737,8 @@ ASN Notation: asplain
 
 | VRF | Route-Distinguisher | Redistribute |
 | --- | ------------------- | ------------ |
-| default | 192.168.99.1 | - |
-| STATION | 192.168.99.2 | connected |
+| default | 192.168.99.1:101 | - |
+| STATION | 192.168.99.1:102 | connected |
 
 #### Router BGP Device Configuration
 
@@ -803,13 +803,13 @@ router bgp 65199
       neighbor WAN-RR-OVERLAY-PEERS activate
    !
    vrf default
-      rd 192.168.99.1
+      rd 192.168.99.1:101
       route-target import evpn 65199:101
       route-target export evpn 65199:101
       route-target export evpn route-map RM-EVPN-EXPORT-VRF-DEFAULT
    !
    vrf STATION
-      rd 192.168.99.2
+      rd 192.168.99.1:102
       route-target import evpn 65199:102
       route-target export evpn 65199:102
       router-id 10.254.99.1

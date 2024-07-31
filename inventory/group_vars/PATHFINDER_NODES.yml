@@ -24,11 +24,6 @@ wan_rr: # dynamic_key: node_type
       structured_config:
         router_bgp:
           router_id: 192.168.99.1
-          vrfs:
-            - name: default
-              rd: 192.168.99.1
-            - name: STATION
-              rd: 192.168.99.2
       l3_interfaces:
         - name: Ethernet1
           ip_address: 142.215.104.113/31
@@ -43,11 +38,6 @@ wan_rr: # dynamic_key: node_type
       structured_config:
         router_bgp:
           router_id: 192.168.99.2
-          vrfs:
-            - name: default
-              rd: 192.168.99.2
-            - name: STATION
-              rd: 192.168.99.2
       l3_interfaces:
         - name: Ethernet1
           ip_address: 142.215.104.115/31

@@ -26,11 +26,6 @@ wan_router:  # dynamic_key: node_type
       structured_config:
         router_bgp:
           router_id: 192.168.108.1
-          vrfs:
-            - name: default
-              rd: 192.168.108.1
-            - name: STATION
-              rd: 192.168.108.1
       # mgmt_ip: 10.90.245.93/24
       mgmt_ip: null
       l3_interfaces:
