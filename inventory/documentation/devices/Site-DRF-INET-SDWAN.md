@@ -19,6 +19,7 @@
 - [DHCP Server](#dhcp-server)
   - [DHCP Servers Summary](#dhcp-servers-summary)
   - [DHCP Server Configuration](#dhcp-server-configuration)
+  - [DHCP Server Interfaces](#dhcp-server-interfaces)
 - [Monitoring](#monitoring)
   - [TerminAttr Daemon](#terminattr-daemon)
   - [Flow Tracking](#flow-tracking)
@@ -284,6 +285,12 @@ dhcp server vrf STATION
       default-gateway 10.100.110.1
 ```
 
+### DHCP Server Interfaces
+
+| Interface name | DHCP IPv4 | DHCP IPv6 |
+| -------------- | --------- | --------- |
+| Ethernet1/4 | True | False |
+
 ## Monitoring
 
 ### TerminAttr Daemon
@@ -355,6 +362,7 @@ flow tracking hardware
 | Host Name | Description | IPv4 Address | Probing Interface Set | Address Only | URL |
 | --------- | ----------- | ------------ | --------------------- | ------------ | --- |
 | IE-Ethernet1_2 | Internet Exit STATION-avt-defaultIEPolicy | 76.81.100.241 | SET-Ethernet1_2 | False | - |
+| IE-Ethernet1_2 | - | 8.8.8.8 | - | True | - |
 
 ### Monitor Connectivity Device Configuration
 
@@ -369,6 +377,9 @@ monitor connectivity
       Internet Exit STATION-avt-defaultIEPolicy
       local-interfaces SET-Ethernet1_2
       ip 76.81.100.241
+   !
+   host IE-Ethernet1_2
+      ip 8.8.8.8
 ```
 
 ## Spanning Tree
@@ -498,6 +509,8 @@ interface Dps1
 | Interface | Description | Type | Channel Group | IP Address | VRF |  MTU | Shutdown | ACL In | ACL Out |
 | --------- | ----------- | -----| ------------- | ---------- | ----| ---- | -------- | ------ | ------- |
 | Ethernet1/2 | internet | routed | - | 76.81.100.242/29 | default | - | False | DRF-inet-inbound | DRF-inet-outbound |
+| Ethernet1/3 | - | routed | - | 10.100.140.2/24 | STATION | - | - | - | - |
+| Ethernet1/4 | - | routed | - | 10.100.110.1/24 | STATION | - | - | - | - |
 
 ##### IP NAT: Interfaces configured via profile
 
@@ -517,6 +530,18 @@ interface Ethernet1/2
    ip access-group DRF-inet-inbound in
    ip access-group DRF-inet-outbound out
    ip nat service-profile IE-DIRECT-NAT
+!
+interface Ethernet1/3
+   no switchport
+   vrf STATION
+   ip address 10.100.140.2/24
+!
+interface Ethernet1/4
+   no switchport
+   flow tracker hardware flowTracker
+   vrf STATION
+   ip address 10.100.110.1/24
+   dhcp server ipv4
 ```
 
 ### Loopback Interfaces
@@ -618,12 +643,14 @@ ip routing vrf STATION
 | VRF | Destination Prefix | Next Hop IP | Exit interface | Administrative Distance | Tag | Route Name | Metric |
 | --- | ------------------ | ----------- | -------------- | ----------------------- | --- | ---------- | ------ |
 | default | 0.0.0.0/0 | 76.81.100.241 | - | 1 | - | - | - |
+| STATION | 0.0.0.0/0 | 10.100.140.1 | - | 1 | - | - | - |
 
 #### Static Routes Device Configuration
 
 ```eos
 !
 ip route 0.0.0.0/0 76.81.100.241
+ip route vrf STATION 0.0.0.0/0 10.100.140.1
 ```
 
 ### Router Adaptive Virtual Topology
@@ -644,8 +671,8 @@ Topology role: edge
 | ------------ | ------------------- | -------------------- |
 | DEFAULT-AVT-POLICY-CONTROL-PLANE | LB-DEFAULT-AVT-POLICY-CONTROL-PLANE | - |
 | DEFAULT-AVT-POLICY-DEFAULT | LB-DEFAULT-AVT-POLICY-DEFAULT | - |
-| StationAVTPolicy-DEFAULT | LB-StationAVTPolicy-DEFAULT | STATION-avt-defaultIEPolicy |
-| StationAVTPolicy-TeamsProfile | LB-StationAVTPolicy-TeamsProfile | - |
+| StationAVTPolicy-DEFAULT | LB-StationAVTPolicy-DEFAULT | - |
+| StationAVTPolicy-TeamsProfile | LB-StationAVTPolicy-TeamsProfile | STATION-avt-defaultIEPolicy |
 
 #### AVT Policies
 
@@ -720,10 +747,10 @@ router adaptive-virtual-topology
       path-selection load-balance LB-DEFAULT-AVT-POLICY-DEFAULT
    !
    profile StationAVTPolicy-DEFAULT
-      internet-exit policy STATION-avt-defaultIEPolicy
       path-selection load-balance LB-StationAVTPolicy-DEFAULT
    !
    profile StationAVTPolicy-TeamsProfile
+      internet-exit policy STATION-avt-defaultIEPolicy
       path-selection load-balance LB-StationAVTPolicy-TeamsProfile
    !
    vrf default
@@ -1301,6 +1328,7 @@ stun
 
 ```eos
 !
+hardware encryption disabled
 ip access-list DRF-inet-inbound
   permit response traffic nat
 

@@ -608,8 +608,8 @@ Topology role: transit region
 | ------------ | ------------------- | -------------------- |
 | DEFAULT-AVT-POLICY-CONTROL-PLANE | LB-DEFAULT-AVT-POLICY-CONTROL-PLANE | - |
 | DEFAULT-AVT-POLICY-DEFAULT | LB-DEFAULT-AVT-POLICY-DEFAULT | - |
-| StationAVTPolicy-DEFAULT | LB-StationAVTPolicy-DEFAULT | STATION-avt-defaultIEPolicy |
-| StationAVTPolicy-TeamsProfile | LB-StationAVTPolicy-TeamsProfile | - |
+| StationAVTPolicy-DEFAULT | LB-StationAVTPolicy-DEFAULT | - |
+| StationAVTPolicy-TeamsProfile | LB-StationAVTPolicy-TeamsProfile | STATION-avt-defaultIEPolicy |
 
 #### AVT Policies
 
@@ -684,10 +684,10 @@ router adaptive-virtual-topology
       path-selection load-balance LB-DEFAULT-AVT-POLICY-DEFAULT
    !
    profile StationAVTPolicy-DEFAULT
-      internet-exit policy STATION-avt-defaultIEPolicy
       path-selection load-balance LB-StationAVTPolicy-DEFAULT
    !
    profile StationAVTPolicy-TeamsProfile
+      internet-exit policy STATION-avt-defaultIEPolicy
       path-selection load-balance LB-StationAVTPolicy-TeamsProfile
    !
    vrf default

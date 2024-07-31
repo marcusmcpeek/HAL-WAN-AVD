@@ -38,6 +38,18 @@ wan_router:  # dynamic_key: node_type
             policies:
               - name: STATION-avt-defaultIEPolicy
       structured_config:
+        ethernet_interfaces:
+          - name: Ethernet1/2
+            ip_address: 10.100.130.1/24
+            type: routed
+            vrf: STATION
+            flow_tracker:
+              hardware: flowTracker
+            dhcp_server_ipv4: true
+        monitor_connectivity:
+          hosts:
+            - name: IE-Ethernet1_1
+              ip: 8.8.8.8
         router_bgp:
           router_id: 192.168.130.1
           vrfs:
@@ -61,6 +73,7 @@ wan_router:  # dynamic_key: node_type
                   hours: 0
                   minutes: 0
       raw_eos_cli: |
+        hardware encryption disabled
         ip access-list TIER1-inet-inbound
           permit response traffic nat
 

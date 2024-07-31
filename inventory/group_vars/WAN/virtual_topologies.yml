@@ -19,15 +19,14 @@ wan_virtual_topologies:
         path_groups:
           - names: [internet]
             # preference: preferred
-        internet_exit:
-          policy: STATION-avt-defaultIEPolicy
       application_virtual_topologies:
         - application_profile: TeamsProfile
           id: 3
           path_groups:
             - names:
                 - internet
-
+          internet_exit:
+            policy: STATION-avt-defaultIEPolicy
 
 # Application traffic recognition configuration.
 application_classification:

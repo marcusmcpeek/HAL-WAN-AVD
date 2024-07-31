@@ -10,7 +10,6 @@ custom_structured_configuration_local_users:
     privilege: 15
     sha512_password: "$6$UisBHbh7j0nDNbP9$3PzI4Cqr9NK.j.8hJV5enMrMuKDm9UEkugTDY0L0ASY4uefBHeeKA.o9WijOvXzYYBiXrcx6uk6oCsurDLYvR1"
 
-
 wan_router:  # dynamic_key: node_type
   defaults:
     id: 1
@@ -38,6 +37,26 @@ wan_router:  # dynamic_key: node_type
             policies:
               - name: STATION-avt-defaultIEPolicy
       structured_config:
+        ethernet_interfaces:
+          - name: Ethernet1/3
+            ip_address: 10.100.140.2/24
+            type: routed
+            vrf: STATION
+          - name: Ethernet1/4
+            ip_address: 10.100.110.1/24
+            type: routed
+            vrf: STATION
+            flow_tracker:
+              hardware: flowTracker
+            dhcp_server_ipv4: true
+        monitor_connectivity:
+          hosts:
+            - name: IE-Ethernet1_2
+              ip: 8.8.8.8
+        static_routes:
+          - vrf: STATION
+            destination_address_prefix: 0.0.0.0/0
+            gateway: 10.100.140.1
         router_bgp:
           router_id: 192.168.110.1
           vrfs:
@@ -61,6 +80,7 @@ wan_router:  # dynamic_key: node_type
                   hours: 0
                   minutes: 0
       raw_eos_cli: |
+        hardware encryption disabled
         ip access-list DRF-inet-inbound
           permit response traffic nat
 

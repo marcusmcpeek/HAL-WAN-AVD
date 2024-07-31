@@ -125,7 +125,7 @@ management_api_http:
   enable_vrfs:
   - name: default
   enable_https: true
-eos_cli: "ip access-list DRF-inet-inbound\n  permit response traffic nat\n"
+eos_cli: "hardware encryption disabled\nip access-list DRF-inet-inbound\n  permit response traffic nat\n"
 ntp:
   servers:
   - name: time.google.com
@@ -142,6 +142,17 @@ ethernet_interfaces:
   access_group_out: DRF-inet-outbound
   ip_nat:
     service_profile: IE-DIRECT-NAT
+- name: Ethernet1/3
+  ip_address: 10.100.140.2/24
+  type: routed
+  vrf: STATION
+- name: Ethernet1/4
+  ip_address: 10.100.110.1/24
+  type: routed
+  vrf: STATION
+  flow_tracker:
+    hardware: flowTracker
+  dhcp_server_ipv4: true
 loopback_interfaces:
 - name: Loopback0
   description: Router_ID
@@ -184,6 +195,9 @@ route_maps:
 static_routes:
 - destination_address_prefix: 0.0.0.0/0
   gateway: 76.81.100.241
+- vrf: STATION
+  destination_address_prefix: 0.0.0.0/0
+  gateway: 10.100.140.1
 agents:
 - name: KernelFib
   environment_variables:
@@ -438,9 +452,9 @@ router_adaptive_virtual_topology:
     load_balance_policy: LB-DEFAULT-AVT-POLICY-DEFAULT
   - name: StationAVTPolicy-TeamsProfile
     load_balance_policy: LB-StationAVTPolicy-TeamsProfile
+    internet_exit_policy: STATION-avt-defaultIEPolicy
   - name: StationAVTPolicy-DEFAULT
     load_balance_policy: LB-StationAVTPolicy-DEFAULT
-    internet_exit_policy: STATION-avt-defaultIEPolicy
   vrfs:
   - name: default
     policy: DEFAULT-AVT-POLICY-WITH-CP
@@ -595,6 +609,8 @@ monitor_connectivity:
     ip: 76.81.100.241
     local_interfaces: SET-Ethernet1_2
     address_only: false
+  - name: IE-Ethernet1_2
+    ip: 8.8.8.8
   shutdown: false
 metadata:
   cv_pathfinder:

@@ -254,9 +254,9 @@ router_adaptive_virtual_topology:
     load_balance_policy: LB-DEFAULT-AVT-POLICY-DEFAULT
   - name: StationAVTPolicy-TeamsProfile
     load_balance_policy: LB-StationAVTPolicy-TeamsProfile
+    internet_exit_policy: STATION-avt-defaultIEPolicy
   - name: StationAVTPolicy-DEFAULT
     load_balance_policy: LB-StationAVTPolicy-DEFAULT
-    internet_exit_policy: STATION-avt-defaultIEPolicy
   vrfs:
   - name: default
     policy: DEFAULT-AVT-POLICY-WITH-CP
