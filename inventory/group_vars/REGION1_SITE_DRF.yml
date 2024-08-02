@@ -37,6 +37,8 @@ wan_router:  # dynamic_key: node_type
             policies:
               - name: STATION-avt-defaultIEPolicy
       structured_config:
+        ip_security:
+          hardware_encryption_disabled: true
         ethernet_interfaces:
           - name: Ethernet1/3
             ip_address: 10.100.140.2/24
@@ -80,7 +82,6 @@ wan_router:  # dynamic_key: node_type
                   hours: 0
                   minutes: 0
       raw_eos_cli: |
-        hardware encryption disabled
         ip access-list DRF-inet-inbound
           permit response traffic nat
 

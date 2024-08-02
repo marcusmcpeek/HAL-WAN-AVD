@@ -8,8 +8,28 @@
       ansible.builtin.import_role:
         name: arista.avd.cv_deploy
       vars:
-        # cv_inventory_hostname: cvaas
         cv_server: www.cv-prod-us-central1-c.arista.io
-        cv_token: "{{ vault_cvaas_pass }}"
+        cv_token: eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJkaWQiOjcyMzEyODYwODY2NTAxNzA4MTEsImRzbiI6Im1hcmN1cyIsImRzdCI6ImFjY291bnQiLCJleHAiOjE3MzU2Nzk2MDcsImlhdCI6MTcyMjYyOTYxNSwib2dpIjo3MjMxMjg2MDg2NjUwMDg4Nzk4LCJvZ24iOiJoYXdhaWlhbmFpci11cyIsInNpZCI6IjAwMmM5MjBjMGUxMGQ0ZWJmZjU1Yzc1Y2IyOWFjMDVkYjQzNTQzMGYyZGZiNGQ4NzYzMzc5YzcwZGY0MzVlZGMtV29wNFZSYUdEbDBVbU9RYV9Zd3FNZTdDMWJUYXEtb09OLTQ5UFFOeCJ9.UtI9bCXIe9jYU6JDq6rz5HMWz4-zSwH4v4q5Ms0FexE46ESyuyt9X20Q5jT8x1is248xBiqBkeF5U8kO59by2w
         cv_run_change_control: false
         deploy_to_cv_accept_preview: true
+
+
+# - name: Deploy WAN Configuration with CloudVision
+#   hosts: WAN
+#   connection: local
+#   gather_facts: false
+#   tasks:
+#     - name: Provision CVP with AVD configuration
+#       run_once: true
+#       delegate_to: localhost
+#       arista.avd.cv_workflow:
+#         cv_servers: [www.cv-prod-us-central1-c.arista.io]
+#         cv_token: eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJkaWQiOjcyMzEyODYwODY2NTAxNjg1ODksImRzbiI6ImNmZ0ZldGNoVG9rZW4iLCJkc3QiOiJhY2NvdW50IiwiZXhwIjoxNzY3MjU0Mzk5LCJpYXQiOjE3MjExMTM1MTYsIm9naSI6NzIzMTI4NjA4NjY1MDE2MTk1Miwib2duIjoid2FuLXBvYy1weXBsIiwic2lkIjoiZDJiZDVmYThkMDkxNGI4ZGQ3MDllYmNkZWViMTRkNTc5ZjZjZWRmNGQzYTJlNTQ5YjQyMTVlMWVmMmE1ZmIwNy1uTTBoSDVodGZNTktxeDR6bXhLTWNEd3ZqdkdNa2J4QUMwbXpCaDNQIn0.9LYXBBTZmTsK5m-YVRrpBQ72rB3GleFM28D9D2vFqhdpsRZq7caWKhU-K2ZC1bb0wkJ5HbxdikCayr0_SZv63w
+#         configuration_dir: "{{ inventory_dir }}/intended/configs"
+#         structured_config_dir: "{{ inventory_dir }}/intended/structured_configs"
+#         device_list: "{{ ansible_play_hosts }}"
+#         workspace:
+#           requested_state: submitted
+#         change_control:
+#           requested_state: pending approval
+#         return_details: false

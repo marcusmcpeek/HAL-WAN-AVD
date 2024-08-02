@@ -196,14 +196,12 @@ management api http-commands
 
 | User | Privilege | Role | Disabled | Shell |
 | ---- | --------- | ---- | -------- | ----- |
-| admin | 15 | network-admin | False | - |
 | demo | 15 | network-admin | False | - |
 
 #### Local Users Device Configuration
 
 ```eos
 !
-username admin privilege 15 role network-admin secret sha512 <removed>
 username demo privilege 15 role network-admin secret sha512 <removed>
 ```
 
@@ -397,6 +395,8 @@ spanning-tree mode none
 
 ## IP Security
 
+- Hardware encryption is disabled
+
 ### IKE policies
 
 | Policy name | IKE lifetime | Encryption | DH group | Local ID |
@@ -457,6 +457,7 @@ ip security
    !
    key controller
       profile DP-PROFILE
+   hardware encryption disabled
 ```
 
 ## Interfaces
@@ -1310,7 +1311,6 @@ stun
 
 ```eos
 !
-hardware encryption disabled
 ip access-list TIER1-inet-inbound
   permit response traffic nat
 

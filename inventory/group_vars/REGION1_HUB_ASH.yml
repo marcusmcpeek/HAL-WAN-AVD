@@ -5,10 +5,10 @@
 # type: wan_router
 
 custom_structured_configuration_local_users:
-  - name: neteng1
+  - name: admin
     role: network-admin
     privilege: 15
-    sha512_password: "$1$X3t8pt2v$FWMtZOAEnRyW6B2VRxTQW/"
+    sha512_password: "$6$cvwrJmkkXM.q.4SQ$6FmmB4NCwUGaOK6ixek8b.JiGy0DYp48lxBi9Z3275F3xHWlrnCWb0qGiQT.oly5FwohlEDe5L0MP59EF.RJ4."
 
 
 wan_router:  # dynamic_key: node_type

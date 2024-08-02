@@ -106,15 +106,6 @@ daemon_terminattr:
 transceiver_qsfp_default_mode_4x10: false
 spanning_tree:
   mode: none
-local_users:
-- name: admin
-  role: network-admin
-  privilege: 15
-  sha512_password: $6$JrS3d2nAMOGnIlAh$h3J1UHELqo4rO4X.11QwVWltyNzvT4EV/7ufhuJ.yonFGjRWm8YpCbLN3IldeWZqs8YIOoKSrdx2f6Dsgg1OF0
-- name: demo
-  role: network-admin
-  privilege: 15
-  sha512_password: $6$UisBHbh7j0nDNbP9$3PzI4Cqr9NK.j.8hJV5enMrMuKDm9UEkugTDY0L0ASY4uefBHeeKA.o9WijOvXzYYBiXrcx6uk6oCsurDLYvR1
 vrfs:
 - name: default
   ip_routing: false
@@ -125,7 +116,7 @@ management_api_http:
   enable_vrfs:
   - name: default
   enable_https: true
-eos_cli: "hardware encryption disabled\nip access-list DRF-inet-inbound\n  permit response traffic nat\n"
+eos_cli: "ip access-list DRF-inet-inbound\n  permit response traffic nat\n"
 ntp:
   servers:
   - name: time.google.com
@@ -424,6 +415,7 @@ ip_security:
     mode: transport
   key_controller:
     profile: DP-PROFILE
+  hardware_encryption_disabled: true
 management_security:
   ssl_profiles:
   - name: STUN-DTLS
@@ -690,3 +682,8 @@ ip_name_servers:
 management_ssh:
   client_alive:
     interval: 180
+local_users:
+- name: demo
+  role: network-admin
+  privilege: 15
+  sha512_password: $6$UisBHbh7j0nDNbP9$3PzI4Cqr9NK.j.8hJV5enMrMuKDm9UEkugTDY0L0ASY4uefBHeeKA.o9WijOvXzYYBiXrcx6uk6oCsurDLYvR1

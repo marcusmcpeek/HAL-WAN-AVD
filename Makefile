@@ -21,9 +21,9 @@ install-collections: ## Install ansible collections
 wan-build: ## Build wan WAN artifacts
 	ansible-playbook playbooks/wan-build.yml -i inventory/inventory.yml
 
-.PHONY: wan-cv-deploy
-wan-cv-deploy: ## Deploy config to CV
-	ansible-playbook playbooks/wan-cv-deploy.yml -i inventory/inventory.yml -v
+.PHONY: wan-deploy
+wan-deploy: ## Deploy config to CV
+	ansible-playbook playbooks/wan-deploy.yml -i inventory/inventory.yml -v
 
 .PHONY: wan-validate
 wan-validate: ## Deploy config to CV

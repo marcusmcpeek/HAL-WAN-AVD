@@ -149,15 +149,6 @@ daemon_terminattr:
 transceiver_qsfp_default_mode_4x10: false
 spanning_tree:
   mode: none
-local_users:
-- name: admin
-  role: network-admin
-  privilege: 15
-  sha512_password: $6$JrS3d2nAMOGnIlAh$h3J1UHELqo4rO4X.11QwVWltyNzvT4EV/7ufhuJ.yonFGjRWm8YpCbLN3IldeWZqs8YIOoKSrdx2f6Dsgg1OF0
-- name: neteng1
-  role: network-admin
-  privilege: 15
-  sha512_password: $1$X3t8pt2v$FWMtZOAEnRyW6B2VRxTQW/
 vrfs:
 - name: default
   ip_routing: false
@@ -479,3 +470,8 @@ ip_name_servers:
 management_ssh:
   client_alive:
     interval: 180
+local_users:
+- name: admin
+  role: network-admin
+  privilege: 15
+  sha512_password: $6$cvwrJmkkXM.q.4SQ$6FmmB4NCwUGaOK6ixek8b.JiGy0DYp48lxBi9Z3275F3xHWlrnCWb0qGiQT.oly5FwohlEDe5L0MP59EF.RJ4.

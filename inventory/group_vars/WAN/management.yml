@@ -13,12 +13,6 @@ custom_structured_configuration_agents:
       - name: KERNELFIB_PROGRAM_ALL_ECMP
         value: "'true'"
 
-local_users:
-  - name: admin
-    role: network-admin
-    privilege: 15
-    sha512_password: "$6$JrS3d2nAMOGnIlAh$h3J1UHELqo4rO4X.11QwVWltyNzvT4EV/7ufhuJ.yonFGjRWm8YpCbLN3IldeWZqs8YIOoKSrdx2f6Dsgg1OF0"
-
 cvp_instance_ips: ["apiserver.arista.io"]
 
 custom_structured_configuration_daemon_terminattr:
