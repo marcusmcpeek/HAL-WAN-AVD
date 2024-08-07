@@ -316,7 +316,7 @@ daemon TerminAttr
 
 | Tracker Name | Record Export On Inactive Timeout | Record Export On Interval | Number of Exporters | Applied On |
 | ------------ | --------------------------------- | ------------------------- | ------------------- | ---------- |
-| FLOW-TRACKER | 70000 | 300000 | 1 | Dps1 |
+| FLOW-TRACKER | 70000 | 300000 | 1 | Dps1<br>Ethernet1/4 |
 
 ##### Exporters Summary
 
@@ -535,7 +535,7 @@ interface Ethernet1/3
 !
 interface Ethernet1/4
    no switchport
-   flow tracker hardware flowTracker
+   flow tracker hardware FLOW-TRACKER
    vrf STATION
    ip address 10.100.110.1/24
    dhcp server ipv4

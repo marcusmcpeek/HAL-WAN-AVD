@@ -46,7 +46,7 @@ wan_router:  # dynamic_key: node_type
             type: routed
             vrf: STATION
             flow_tracker:
-              hardware: flowTracker
+              hardware: FLOW-TRACKER
             dhcp_server_ipv4: true
         monitor_connectivity:
           hosts:
