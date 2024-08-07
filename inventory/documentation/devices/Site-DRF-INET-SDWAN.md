@@ -874,7 +874,7 @@ ASN Notation: asplain
 | VRF | Route-Distinguisher | Redistribute |
 | --- | ------------------- | ------------ |
 | default | 192.168.110.1:101 | - |
-| STATION | 192.168.110.1:201 | connected |
+| STATION | 192.168.110.1:201 | connected<br>static |
 
 #### Router BGP Device Configuration
 
@@ -931,6 +931,7 @@ router bgp 65199
       route-target export evpn 65199:201
       router-id 192.168.110.1
       redistribute connected
+      redistribute static
 ```
 
 ## BFD

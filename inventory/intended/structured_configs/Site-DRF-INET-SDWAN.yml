@@ -91,6 +91,7 @@ router_bgp:
         - 65199:201
     redistribute_routes:
     - source_protocol: connected
+    - source_protocol: static
 service_routing_protocols_model: multi-agent
 ip_routing: true
 daemon_terminattr:

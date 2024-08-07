@@ -66,6 +66,8 @@ wan_router:  # dynamic_key: node_type
               router_id: 192.168.110.1
             - name: STATION
               router_id: 192.168.110.1
+              redistribute_routes:
+                - source_protocol: static
         dhcp_servers:
           - disabled: false
             vrf: STATION
