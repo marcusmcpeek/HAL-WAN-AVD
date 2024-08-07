@@ -19,9 +19,6 @@
 - [Monitoring](#monitoring)
   - [TerminAttr Daemon](#terminattr-daemon)
   - [Flow Tracking](#flow-tracking)
-- [Monitor Connectivity](#monitor-connectivity)
-  - [Global Configuration](#global-configuration)
-  - [Monitor Connectivity Device Configuration](#monitor-connectivity-device-configuration)
 - [Spanning Tree](#spanning-tree)
   - [Spanning Tree Summary](#spanning-tree-summary)
   - [Spanning Tree Device Configuration](#spanning-tree-device-configuration)
@@ -43,9 +40,6 @@
   - [IPv6 Routing](#ipv6-routing)
   - [Static Routes](#static-routes)
   - [Router Adaptive Virtual Topology](#router-adaptive-virtual-topology)
-- [Router Service Insertion](#router-service-insertion)
-  - [Connections](#connections)
-  - [Router Service Insertion Configuration](#router-service-insertion-configuration)
   - [Router Traffic-Engineering](#router-traffic-engineering)
   - [Router BGP](#router-bgp)
 - [BFD](#bfd)
@@ -54,8 +48,6 @@
   - [Prefix-lists](#prefix-lists)
   - [Route-maps](#route-maps)
   - [IP Extended Community Lists](#ip-extended-community-lists)
-- [ACL](#acl)
-  - [IP Access-lists](#ip-access-lists)
 - [VRF Instances](#vrf-instances)
   - [VRF Instances Summary](#vrf-instances-summary)
   - [VRF Instances Device Configuration](#vrf-instances-device-configuration)
@@ -68,10 +60,6 @@
   - [Field Sets](#field-sets)
   - [Router Application-Traffic-Recognition Device Configuration](#router-application-traffic-recognition-device-configuration)
   - [Router Path-selection](#router-path-selection)
-  - [Router Internet Exit](#router-internet-exit)
-- [IP NAT](#ip-nat)
-  - [NAT Profiles](#nat-profiles)
-  - [IP NAT Device Configuration](#ip-nat-device-configuration)
 - [STUN](#stun)
   - [STUN Client](#stun-client)
   - [STUN Device Configuration](#stun-device-configuration)
@@ -297,43 +285,6 @@ flow tracking hardware
    no shutdown
 ```
 
-## Monitor Connectivity
-
-### Global Configuration
-
-#### Interface Sets
-
-| Name | Interfaces |
-| ---- | ---------- |
-| SET-Ethernet1 | Ethernet1 |
-
-#### Probing Configuration
-
-| Enabled | Interval | Default Interface Set | Address Only |
-| ------- | -------- | --------------------- | ------------ |
-| True | - | - | True |
-
-#### Host Parameters
-
-| Host Name | Description | IPv4 Address | Probing Interface Set | Address Only | URL |
-| --------- | ----------- | ------------ | --------------------- | ------------ | --- |
-| IE-Ethernet1 | Internet Exit STATION-avt-defaultIEPolicy | 142.215.198.169 | SET-Ethernet1 | False | - |
-
-### Monitor Connectivity Device Configuration
-
-```eos
-!
-monitor connectivity
-   no shutdown
-   interface set SET-Ethernet1 Ethernet1
-   !
-   host IE-Ethernet1
-      description
-      Internet Exit STATION-avt-defaultIEPolicy
-      local-interfaces SET-Ethernet1
-      ip 142.215.198.169
-```
-
 ## Spanning Tree
 
 ### Spanning Tree Summary
@@ -462,12 +413,6 @@ interface Dps1
 | --------- | ----------- | -----| ------------- | ---------- | ----| ---- | -------- | ------ | ------- |
 | Ethernet1 | internet | routed | - | dhcp | default | - | False | - | - |
 
-##### IP NAT: Interfaces configured via profile
-
-| Interface | Profile |
-| --------- |-------- |
-| Ethernet1 | IE-DIRECT-NAT |
-
 #### Ethernet Interfaces Device Configuration
 
 ```eos
@@ -478,7 +423,6 @@ interface Ethernet1
    no switchport
    ip address dhcp
    dhcp client accept default-route
-   ip nat service-profile IE-DIRECT-NAT
 ```
 
 ### Loopback Interfaces
@@ -607,7 +551,7 @@ Topology role: transit region
 | DEFAULT-AVT-POLICY-CONTROL-PLANE | LB-DEFAULT-AVT-POLICY-CONTROL-PLANE | - |
 | DEFAULT-AVT-POLICY-DEFAULT | LB-DEFAULT-AVT-POLICY-DEFAULT | - |
 | StationAVTPolicy-DEFAULT | LB-StationAVTPolicy-DEFAULT | - |
-| StationAVTPolicy-TeamsProfile | LB-StationAVTPolicy-TeamsProfile | STATION-avt-defaultIEPolicy |
+| StationAVTPolicy-TeamsProfile | LB-StationAVTPolicy-TeamsProfile | - |
 
 #### AVT Policies
 
@@ -685,7 +629,6 @@ router adaptive-virtual-topology
       path-selection load-balance LB-StationAVTPolicy-DEFAULT
    !
    profile StationAVTPolicy-TeamsProfile
-      internet-exit policy STATION-avt-defaultIEPolicy
       path-selection load-balance LB-StationAVTPolicy-TeamsProfile
    !
    vrf default
@@ -697,28 +640,6 @@ router adaptive-virtual-topology
       avt policy StationAVTPolicy
       avt profile StationAVTPolicy-DEFAULT id 1
       avt profile StationAVTPolicy-TeamsProfile id 3
-```
-
-## Router Service Insertion
-
-Router service-insertion is enabled.
-
-### Connections
-
-#### Connections Through Ethernet Interface
-
-| Name | Interface | Next Hop | Monitor Connectivity Host |
-| ---- | --------- | -------- | ------------------------- |
-| IE-Ethernet1 | Ethernet1 | 142.215.198.169 | IE-Ethernet1 |
-
-### Router Service Insertion Configuration
-
-```eos
-!
-router service-insertion
-   connection IE-Ethernet1
-      interface Ethernet1 next-hop 142.215.198.169
-      monitor connectivity host IE-Ethernet1
 ```
 
 ### Router Traffic-Engineering
@@ -973,18 +894,6 @@ route-map RM-EVPN-SOO-OUT permit 10
 ip extcommunity-list ECL-EVPN-SOO permit soo 10.254.108.1:108
 ```
 
-## ACL
-
-### IP Access-lists
-
-#### IP Access-lists Device Configuration
-
-```eos
-!
-ip access-list ALLOW-ALL
-   10 permit ip any any
-```
-
 ## VRF Instances
 
 ### VRF Instances Summary
@@ -1024,9 +933,9 @@ system l1
 
 #### IPv4 Applications
 
-| Name | Source Prefix | Destination Prefix | Protocols | Protocol Ranges | TCP Source Port Set | TCP Destination Port Set | UDP Source Port Set | UDP Destination Port Set |
-| ---- | ------------- | ------------------ | --------- | --------------- | ------------------- | ------------------------ | ------------------- | ------------------------ |
-| APP-CONTROL-PLANE | - | PFX-PATHFINDERS | - | - | - | - | - | - |
+| Name | Source Prefix | Destination Prefix | Protocols | Protocol Ranges | TCP Source Port Set | TCP Destination Port Set | UDP Source Port Set | UDP Destination Port Set | DSCP |
+| ---- | ------------- | ------------------ | --------- | --------------- | ------------------- | ------------------------ | ------------------- | ------------------------ | ---- |
+| APP-CONTROL-PLANE | - | PFX-PATHFINDERS | - | - | - | - | - | - | - |
 
 ### Application Profiles
 
@@ -1153,56 +1062,6 @@ router path-selection
    !
    load-balance policy LB-StationAVTPolicy-TeamsProfile
       path-group internet
-```
-
-### Router Internet Exit
-
-#### Exit Groups
-
-| Exit Group Name | Local Connections | Fib Default |
-| --------------- | ----------------- | ----------- |
-| STATION-avt-defaultIEPolicy | IE-Ethernet1 | - |
-
-#### Internet Exit Policies
-
-| Policy Name | Exit Groups |
-| ----------- | ----------- |
-| STATION-avt-defaultIEPolicy | STATION-avt-defaultIEPolicy<br>system-default-exit-group |
-
-#### Router Internet Exit Device Configuration
-
-```eos
-!
-router internet-exit
-    !
-    exit-group STATION-avt-defaultIEPolicy
-        local connection IE-Ethernet1
-    !
-    policy STATION-avt-defaultIEPolicy
-        exit-group STATION-avt-defaultIEPolicy
-        exit-group system-default-exit-group
-```
-
-## IP NAT
-
-### NAT Profiles
-
-#### Profile: IE-DIRECT-NAT
-
-##### IP NAT: Source Dynamic
-
-| Access List | NAT Type | Pool Name | Priority | Comment |
-| ----------- | -------- | --------- | -------- | ------- |
-| ALLOW-ALL | overload | - | 0 | - |
-
-### IP NAT Device Configuration
-
-```eos
-!
-!
-ip nat profile IE-DIRECT-NAT
-   ip nat source dynamic access-list ALLOW-ALL overload
-!
 ```
 
 ## STUN

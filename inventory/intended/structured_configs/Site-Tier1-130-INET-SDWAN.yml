@@ -132,7 +132,7 @@ ethernet_interfaces:
   access_group_in: TIER1-inet-inbound
   access_group_out: TIER1-inet-outbound
   ip_nat:
-    service_profile: IE-DIRECT-NAT
+    service_profile: NAT-IE-DIRECT
 - name: Ethernet1/2
   ip_address: 10.100.130.1/24
   type: routed
@@ -273,9 +273,14 @@ ip_access_lists:
     sequence: 10
     action: permit
     protocol: ip
-- name: ALLOW-ALL
+- name: ACL-NAT-IE-DIRECT
   entries:
   - sequence: 10
+    action: deny
+    protocol: ip
+    source: 65.76.116.106
+    destination: any
+  - sequence: 20
     action: permit
     protocol: ip
     source: any
@@ -455,10 +460,10 @@ application_traffic_recognition:
       - 192.168.99.2/32
 ip_nat:
   profiles:
-  - name: IE-DIRECT-NAT
+  - name: NAT-IE-DIRECT
     source:
       dynamic:
-      - access_list: ALLOW-ALL
+      - access_list: ACL-NAT-IE-DIRECT
         nat_type: overload
 router_service_insertion:
   enabled: true
@@ -503,11 +508,9 @@ monitor_connectivity:
   hosts:
   - name: IE-Ethernet1_1
     description: Internet Exit STATION-avt-defaultIEPolicy
-    ip: 65.76.116.105
+    ip: 8.8.8.8
     local_interfaces: SET-Ethernet1_1
     address_only: false
-  - name: IE-Ethernet1_1
-    ip: 8.8.8.8
   shutdown: false
 metadata:
   cv_pathfinder:

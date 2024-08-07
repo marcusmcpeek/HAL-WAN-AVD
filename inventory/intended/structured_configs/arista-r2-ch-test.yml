@@ -128,8 +128,6 @@ ethernet_interfaces:
   shutdown: false
   type: routed
   description: internet
-  ip_nat:
-    service_profile: IE-DIRECT-NAT
 loopback_interfaces:
 - name: Loopback0
   description: Router_ID
@@ -245,7 +243,6 @@ router_adaptive_virtual_topology:
     load_balance_policy: LB-DEFAULT-AVT-POLICY-DEFAULT
   - name: StationAVTPolicy-TeamsProfile
     load_balance_policy: LB-StationAVTPolicy-TeamsProfile
-    internet_exit_policy: STATION-avt-defaultIEPolicy
   - name: StationAVTPolicy-DEFAULT
     load_balance_policy: LB-StationAVTPolicy-DEFAULT
   vrfs:
@@ -349,39 +346,6 @@ application_traffic_recognition:
       prefix_values:
       - 192.168.99.1/32
       - 192.168.99.2/32
-ip_access_lists:
-- name: ALLOW-ALL
-  entries:
-  - sequence: 10
-    action: permit
-    protocol: ip
-    source: any
-    destination: any
-ip_nat:
-  profiles:
-  - name: IE-DIRECT-NAT
-    source:
-      dynamic:
-      - access_list: ALLOW-ALL
-        nat_type: overload
-router_service_insertion:
-  enabled: true
-  connections:
-  - name: IE-Ethernet1
-    monitor_connectivity_host: IE-Ethernet1
-    ethernet_interface:
-      name: Ethernet1
-      next_hop: 142.215.58.12
-router_internet_exit:
-  exit_groups:
-  - name: STATION-avt-defaultIEPolicy
-    local_connections:
-    - name: IE-Ethernet1
-  policies:
-  - name: STATION-avt-defaultIEPolicy
-    exit_groups:
-    - name: STATION-avt-defaultIEPolicy
-    - name: system-default-exit-group
 dps_interfaces:
 - name: Dps1
   description: DPS Interface
@@ -400,33 +364,21 @@ vxlan_interface:
         vni: 101
       - name: STATION
         vni: 201
-monitor_connectivity:
-  interface_sets:
-  - name: SET-Ethernet1
-    interfaces: Ethernet1
-  hosts:
-  - name: IE-Ethernet1
-    description: Internet Exit STATION-avt-defaultIEPolicy
-    ip: 142.215.58.12
-    local_interfaces: SET-Ethernet1
-    address_only: false
-  shutdown: false
+flow_tracking:
+  hardware:
+    trackers:
+    - name: FLOW-TRACKER
+      record_export:
+        on_inactive_timeout: 70000
+        on_interval: 300000
+      exporters:
+      - name: CV-TELEMETRY
+        collector:
+          host: 127.0.0.1
+        local_interface: Loopback0
+        template_interval: 3600000
+    shutdown: false
 metadata:
-  cv_pathfinder:
-    internet_exit_policies: []
-    role: transit region
-    ssl_profile: STUN-DTLS
-    vtep_ip: 192.168.109.1
-    region: Global
-    zone: Global-ZONE
-    site: Site-EQX-ASH
-    interfaces:
-    - name: Ethernet1
-      carrier: internet
-      pathgroup: internet
-    pathfinders:
-    - vtep_ip: 192.168.99.1
-    - vtep_ip: 192.168.99.2
   cv_tags:
     device_tags:
     - name: Role
@@ -444,20 +396,20 @@ metadata:
         value: wan
       - name: Carrier
         value: internet
-flow_tracking:
-  hardware:
-    trackers:
-    - name: FLOW-TRACKER
-      record_export:
-        on_inactive_timeout: 70000
-        on_interval: 300000
-      exporters:
-      - name: CV-TELEMETRY
-        collector:
-          host: 127.0.0.1
-        local_interface: Loopback0
-        template_interval: 3600000
-    shutdown: false
+  cv_pathfinder:
+    role: transit region
+    ssl_profile: STUN-DTLS
+    vtep_ip: 192.168.109.1
+    region: Global
+    zone: Global-ZONE
+    site: Site-EQX-ASH
+    interfaces:
+    - name: Ethernet1
+      carrier: internet
+      pathgroup: internet
+    pathfinders:
+    - vtep_ip: 192.168.99.1
+    - vtep_ip: 192.168.99.2
 switchport_default:
   mode: routed
 system:

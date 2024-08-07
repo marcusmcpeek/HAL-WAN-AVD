@@ -256,9 +256,9 @@ management security
 
 ### DHCP Servers Summary
 
-| DHCP Server Enabled | VRF | IPv4 DNS Domain | IPv4 DNS Servers | IPv4 Bootfile | IPv6 DNS Domain | IPv6 DNS Servers | IPv6 Bootfile |
-| ------------------- | --- | --------------- | ---------------- | ------------- | --------------- | ---------------- | ------------- |
-| True | STATION | - | - | - | - | - | - |
+| DHCP Server Enabled | VRF | IPv4 DNS Domain | IPv4 DNS Servers | IPv4 Bootfile | IPv4 Lease Time | IPv6 DNS Domain | IPv6 DNS Servers | IPv6 Bootfile | IPv6 Lease Time |
+| ------------------- | --- | --------------- | ---------------- | ------------- | --------------- | --------------- | ---------------- | ------------- | --------------- |
+| True | STATION | - | - | - | - | - | - | - | - |
 
 #### VRF STATION DHCP Server
 
@@ -359,8 +359,7 @@ flow tracking hardware
 
 | Host Name | Description | IPv4 Address | Probing Interface Set | Address Only | URL |
 | --------- | ----------- | ------------ | --------------------- | ------------ | --- |
-| IE-Ethernet1_2 | Internet Exit STATION-avt-defaultIEPolicy | 76.81.100.241 | SET-Ethernet1_2 | False | - |
-| IE-Ethernet1_2 | - | 8.8.8.8 | - | True | - |
+| IE-Ethernet1_2 | Internet Exit STATION-avt-defaultIEPolicy | 8.8.8.8 | SET-Ethernet1_2 | False | - |
 
 ### Monitor Connectivity Device Configuration
 
@@ -374,9 +373,6 @@ monitor connectivity
       description
       Internet Exit STATION-avt-defaultIEPolicy
       local-interfaces SET-Ethernet1_2
-      ip 76.81.100.241
-   !
-   host IE-Ethernet1_2
       ip 8.8.8.8
 ```
 
@@ -517,7 +513,7 @@ interface Dps1
 
 | Interface | Profile |
 | --------- |-------- |
-| Ethernet1/2 | IE-DIRECT-NAT |
+| Ethernet1/2 | NAT-IE-DIRECT |
 
 #### Ethernet Interfaces Device Configuration
 
@@ -530,7 +526,7 @@ interface Ethernet1/2
    ip address 76.81.100.242/29
    ip access-group DRF-inet-inbound in
    ip access-group DRF-inet-outbound out
-   ip nat service-profile IE-DIRECT-NAT
+   ip nat service-profile NAT-IE-DIRECT
 !
 interface Ethernet1/3
    no switchport
@@ -1076,8 +1072,9 @@ ip access-list DRF-inet-inbound
 ip access-list DRF-inet-outbound
    10 permit ip any any
 !
-ip access-list ALLOW-ALL
-   10 permit ip any any
+ip access-list ACL-NAT-IE-DIRECT
+   10 deny ip host 76.81.100.242 any
+   20 permit ip any any
 ```
 
 ## VRF Instances
@@ -1119,9 +1116,9 @@ system l1
 
 #### IPv4 Applications
 
-| Name | Source Prefix | Destination Prefix | Protocols | Protocol Ranges | TCP Source Port Set | TCP Destination Port Set | UDP Source Port Set | UDP Destination Port Set |
-| ---- | ------------- | ------------------ | --------- | --------------- | ------------------- | ------------------------ | ------------------- | ------------------------ |
-| APP-CONTROL-PLANE | - | PFX-PATHFINDERS | - | - | - | - | - | - |
+| Name | Source Prefix | Destination Prefix | Protocols | Protocol Ranges | TCP Source Port Set | TCP Destination Port Set | UDP Source Port Set | UDP Destination Port Set | DSCP |
+| ---- | ------------- | ------------------ | --------- | --------------- | ------------------- | ------------------------ | ------------------- | ------------------------ | ---- |
+| APP-CONTROL-PLANE | - | PFX-PATHFINDERS | - | - | - | - | - | - | - |
 
 ### Application Profiles
 
@@ -1282,21 +1279,21 @@ router internet-exit
 
 ### NAT Profiles
 
-#### Profile: IE-DIRECT-NAT
+#### Profile: NAT-IE-DIRECT
 
 ##### IP NAT: Source Dynamic
 
 | Access List | NAT Type | Pool Name | Priority | Comment |
 | ----------- | -------- | --------- | -------- | ------- |
-| ALLOW-ALL | overload | - | 0 | - |
+| ACL-NAT-IE-DIRECT | overload | - | 0 | - |
 
 ### IP NAT Device Configuration
 
 ```eos
 !
 !
-ip nat profile IE-DIRECT-NAT
-   ip nat source dynamic access-list ALLOW-ALL overload
+ip nat profile NAT-IE-DIRECT
+   ip nat source dynamic access-list ACL-NAT-IE-DIRECT overload
 !
 ```
 

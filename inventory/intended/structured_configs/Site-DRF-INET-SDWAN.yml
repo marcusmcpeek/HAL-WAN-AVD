@@ -132,7 +132,7 @@ ethernet_interfaces:
   access_group_in: DRF-inet-inbound
   access_group_out: DRF-inet-outbound
   ip_nat:
-    service_profile: IE-DIRECT-NAT
+    service_profile: NAT-IE-DIRECT
 - name: Ethernet1/3
   ip_address: 10.100.140.2/24
   type: routed
@@ -368,9 +368,14 @@ ip_access_lists:
     sequence: 10
     action: permit
     protocol: ip
-- name: ALLOW-ALL
+- name: ACL-NAT-IE-DIRECT
   entries:
   - sequence: 10
+    action: deny
+    protocol: ip
+    source: 76.81.100.242
+    destination: any
+  - sequence: 20
     action: permit
     protocol: ip
     source: any
@@ -550,10 +555,10 @@ application_traffic_recognition:
       - 192.168.99.2/32
 ip_nat:
   profiles:
-  - name: IE-DIRECT-NAT
+  - name: NAT-IE-DIRECT
     source:
       dynamic:
-      - access_list: ALLOW-ALL
+      - access_list: ACL-NAT-IE-DIRECT
         nat_type: overload
 router_service_insertion:
   enabled: true
@@ -598,11 +603,9 @@ monitor_connectivity:
   hosts:
   - name: IE-Ethernet1_2
     description: Internet Exit STATION-avt-defaultIEPolicy
-    ip: 76.81.100.241
+    ip: 8.8.8.8
     local_interfaces: SET-Ethernet1_2
     address_only: false
-  - name: IE-Ethernet1_2
-    ip: 8.8.8.8
   shutdown: false
 metadata:
   cv_pathfinder:

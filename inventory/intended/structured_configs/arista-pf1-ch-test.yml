@@ -365,35 +365,18 @@ vxlan_interface:
         vni: 101
       - name: STATION
         vni: 201
-flow_tracking:
-  hardware:
-    trackers:
-    - name: FLOW-TRACKER
-      record_export:
-        on_inactive_timeout: 70000
-        on_interval: 300000
-      exporters:
-      - name: CV-TELEMETRY
-        collector:
-          host: 127.0.0.1
-        local_interface: Loopback0
-        template_interval: 3600000
-    shutdown: false
 metadata:
-  cv_tags:
-    device_tags:
-    - name: Role
-      value: pathfinder
-    - name: PathfinderSet
-      value: PATHFINDERS
-    interface_tags:
-    - interface: Ethernet1
-      tags:
-      - name: Type
-        value: wan
-      - name: Carrier
-        value: internet
   cv_pathfinder:
+    applications:
+      profiles:
+      - name: TeamsProfile
+        builtin_applications:
+        - name: microsoft
+        - name: ms_teams
+        - name: office365
+      - name: APP-PROFILE-CONTROL-PLANE
+        user_defined_applications:
+        - name: APP-CONTROL-PLANE
     role: pathfinder
     ssl_profile: STUN-DTLS
     vtep_ip: 192.168.99.1
@@ -432,6 +415,8 @@ metadata:
           preference: preferred
         - name: LAN_HA
           preference: preferred
+        application_profiles:
+        - APP-PROFILE-CONTROL-PLANE
       - id: 1
         name: DEFAULT-AVT-POLICY-DEFAULT
         pathgroups:
@@ -449,6 +434,8 @@ metadata:
           preference: preferred
         - name: LAN_HA
           preference: preferred
+        application_profiles:
+        - TeamsProfile
       - id: 1
         name: StationAVTPolicy-DEFAULT
         pathgroups:
@@ -456,6 +443,33 @@ metadata:
           preference: preferred
         - name: LAN_HA
           preference: preferred
+  cv_tags:
+    device_tags:
+    - name: Role
+      value: pathfinder
+    - name: PathfinderSet
+      value: PATHFINDERS
+    interface_tags:
+    - interface: Ethernet1
+      tags:
+      - name: Type
+        value: wan
+      - name: Carrier
+        value: internet
+flow_tracking:
+  hardware:
+    trackers:
+    - name: FLOW-TRACKER
+      record_export:
+        on_inactive_timeout: 70000
+        on_interval: 300000
+      exporters:
+      - name: CV-TELEMETRY
+        collector:
+          host: 127.0.0.1
+        local_interface: Loopback0
+        template_interval: 3600000
+    shutdown: false
 switchport_default:
   mode: routed
 system:
