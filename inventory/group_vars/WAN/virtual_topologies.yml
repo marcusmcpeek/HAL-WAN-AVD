@@ -36,16 +36,30 @@ application_classification:
         prefix_values:
           - 192.168.99.1/32
           - 192.168.99.2/32
+      - name: MSTeamsAppDstPrefixes
+        prefix_values:
+          - 13.107.140.6/32
+          - 13.107.18.15/32
+          - 13.107.6.171/32
+          - 52.108.0.0/14
+          - 52.112.0.0/14
+          - 52.122.0.0/15
+          - 52.238.119.141/32
+          - 52.244.160.207/32
+          - 52.244.37.168/32
   applications:
     ipv4_applications:
       - name: Pathfinder-CP-App
         dest_prefix_set_name: Pathfinder-CP-AppDstPrefixes
+      - name: MSTeamsApp5Tuple
+        dest_prefix_set_name: MSTeamsAppDstPrefixes
   application_profiles:
     - name: PathfinderControlPlaneProfile
       applications:
         - name: Pathfinder-CP-App
     - name: TeamsProfile
       applications:
+        - name: MSTeamsApp5Tuple
         - name: microsoft
         - name: ms_teams
         - name: office365

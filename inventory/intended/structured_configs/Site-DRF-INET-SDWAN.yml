@@ -538,6 +538,7 @@ application_traffic_recognition:
   application_profiles:
   - name: TeamsProfile
     applications:
+    - name: MSTeamsApp5Tuple
     - name: microsoft
     - name: ms_teams
     - name: office365
@@ -546,10 +547,23 @@ application_traffic_recognition:
     - name: APP-CONTROL-PLANE
   applications:
     ipv4_applications:
+    - name: MSTeamsApp5Tuple
+      dest_prefix_set_name: MSTeamsAppDstPrefixes
     - name: APP-CONTROL-PLANE
       dest_prefix_set_name: PFX-PATHFINDERS
   field_sets:
     ipv4_prefixes:
+    - name: MSTeamsAppDstPrefixes
+      prefix_values:
+      - 13.107.140.6/32
+      - 13.107.18.15/32
+      - 13.107.6.171/32
+      - 52.108.0.0/14
+      - 52.112.0.0/14
+      - 52.122.0.0/15
+      - 52.238.119.141/32
+      - 52.244.160.207/32
+      - 52.244.37.168/32
     - name: PFX-PATHFINDERS
       prefix_values:
       - 192.168.99.1/32

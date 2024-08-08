@@ -1120,6 +1120,7 @@ system l1
 | Name | Source Prefix | Destination Prefix | Protocols | Protocol Ranges | TCP Source Port Set | TCP Destination Port Set | UDP Source Port Set | UDP Destination Port Set | DSCP |
 | ---- | ------------- | ------------------ | --------- | --------------- | ------------------- | ------------------------ | ------------------- | ------------------------ | ---- |
 | APP-CONTROL-PLANE | - | PFX-PATHFINDERS | - | - | - | - | - | - | - |
+| MSTeamsApp5Tuple | - | MSTeamsAppDstPrefixes | - | - | - | - | - | - | - |
 
 ### Application Profiles
 
@@ -1135,6 +1136,7 @@ system l1
 | ---- | ---- | ------- |
 | application | microsoft | - |
 | application | ms_teams | - |
+| application | MSTeamsApp5Tuple | - |
 | application | office365 | - |
 
 ### Field Sets
@@ -1143,6 +1145,7 @@ system l1
 
 | Name | Prefixes |
 | ---- | -------- |
+| MSTeamsAppDstPrefixes | 13.107.140.6/32<br>13.107.18.15/32<br>13.107.6.171/32<br>52.108.0.0/14<br>52.112.0.0/14<br>52.122.0.0/15<br>52.238.119.141/32<br>52.244.160.207/32<br>52.244.37.168/32 |
 | PFX-PATHFINDERS | 192.168.99.1/32<br>192.168.99.2/32 |
 
 ### Router Application-Traffic-Recognition Device Configuration
@@ -1154,13 +1157,20 @@ application traffic recognition
    application ipv4 APP-CONTROL-PLANE
       destination prefix field-set PFX-PATHFINDERS
    !
+   application ipv4 MSTeamsApp5Tuple
+      destination prefix field-set MSTeamsAppDstPrefixes
+   !
    application-profile APP-PROFILE-CONTROL-PLANE
       application APP-CONTROL-PLANE
    !
    application-profile TeamsProfile
       application microsoft
       application ms_teams
+      application MSTeamsApp5Tuple
       application office365
+   !
+   field-set ipv4 prefix MSTeamsAppDstPrefixes
+      13.107.140.6/32 13.107.18.15/32 13.107.6.171/32 52.108.0.0/14 52.112.0.0/14 52.122.0.0/15 52.238.119.141/32 52.244.160.207/32 52.244.37.168/32
    !
    field-set ipv4 prefix PFX-PATHFINDERS
       192.168.99.1/32 192.168.99.2/32
